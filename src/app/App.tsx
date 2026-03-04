@@ -3,11 +3,18 @@ import { AppLayout } from './layouts/AppLayout';
 import { MapPageWithProvider } from '@/features/map';
 import { LoginPage, RegisterPage, AuthProvider, useAuth } from '@/features/auth';
 import { EnvironmentsPage } from '@/features/environments';
+import { OnboardingPage } from '@/features/onboarding';
+import { getOnboardingCompleted } from '@/lib/onboarding';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function RequireOnboardingCompleted({ children }: { children: React.ReactNode }) {
+  if (!getOnboardingCompleted()) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
 
@@ -17,12 +24,33 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route element={<AppLayout />}>
-            <Route index element={<Navigate to="/environments" replace />} />
+            <Route
+              index
+              element={
+                <ProtectedRoute>
+                  {getOnboardingCompleted() ? (
+                    <Navigate to="/environments" replace />
+                  ) : (
+                    <Navigate to="/onboarding" replace />
+                  )}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="onboarding"
+              element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="environments"
               element={
                 <ProtectedRoute>
-                  <EnvironmentsPage />
+                  <RequireOnboardingCompleted>
+                    <EnvironmentsPage />
+                  </RequireOnboardingCompleted>
                 </ProtectedRoute>
               }
             />
@@ -30,7 +58,9 @@ export default function App() {
               path="environments/:envId"
               element={
                 <ProtectedRoute>
-                  <MapPageWithProvider />
+                  <RequireOnboardingCompleted>
+                    <MapPageWithProvider />
+                  </RequireOnboardingCompleted>
                 </ProtectedRoute>
               }
             />

@@ -20,6 +20,7 @@ import {
 } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '../context';
+import { getOnboardingCompleted } from '@/lib/onboarding';
 
 type LoginFormValues = {
   email: string;
@@ -38,7 +39,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(values.email, values.password);
-      navigate('/environments');
+      navigate(getOnboardingCompleted() ? '/environments' : '/onboarding');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Login failed');
     }
