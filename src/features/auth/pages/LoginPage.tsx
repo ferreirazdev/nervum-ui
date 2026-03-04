@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { Button } from '@/app/components/ui/button';
@@ -18,6 +19,7 @@ import {
   FormMessage,
 } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
+import { useAuth } from '../context';
 
 type LoginFormValues = {
   email: string;
@@ -26,13 +28,20 @@ type LoginFormValues = {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
   const form = useForm<LoginFormValues>({
     defaultValues: { email: '', password: '' },
   });
 
-  function onSubmit(values: LoginFormValues) {
-    console.log('Login', values);
-    navigate('/environments');
+  async function onSubmit(values: LoginFormValues) {
+    setError(null);
+    try {
+      await login(values.email, values.password);
+      navigate('/environments');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Login failed');
+    }
   }
 
   return (
@@ -45,6 +54,7 @@ export function LoginPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <FormField
                 control={form.control}
                 name="email"
@@ -68,7 +78,7 @@ export function LoginPage() {
               <FormField
                 control={form.control}
                 name="password"
-                rules={{ required: 'Password is required', minLength: { value: 6, message: 'At least 6 characters' } }}
+                rules={{ required: 'Password is required' }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
@@ -81,8 +91,8 @@ export function LoginPage() {
               />
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full">
-                Sign in
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 Don&apos;t have an account?{' '}

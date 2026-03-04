@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { Button } from '@/app/components/ui/button';
@@ -18,6 +19,7 @@ import {
   FormMessage,
 } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
+import { useAuth } from '../context';
 
 type RegisterFormValues = {
   name: string;
@@ -28,15 +30,22 @@ type RegisterFormValues = {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { register } = useAuth();
+  const [error, setError] = useState<string | null>(null);
   const form = useForm<RegisterFormValues>({
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   });
 
   const password = form.watch('password');
 
-  function onSubmit(values: RegisterFormValues) {
-    console.log('Register', values);
-    navigate('/login');
+  async function onSubmit(values: RegisterFormValues) {
+    setError(null);
+    try {
+      await register(values.name, values.email, values.password);
+      navigate('/environments');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Registration failed');
+    }
   }
 
   return (
@@ -49,6 +58,7 @@ export function RegisterPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <FormField
                 control={form.control}
                 name="name"
@@ -88,7 +98,7 @@ export function RegisterPage() {
                 name="password"
                 rules={{
                   required: 'Password is required',
-                  minLength: { value: 6, message: 'At least 6 characters' },
+                  minLength: { value: 8, message: 'At least 8 characters' },
                 }}
                 render={({ field }) => (
                   <FormItem>
@@ -119,8 +129,8 @@ export function RegisterPage() {
               />
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full">
-                Register
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Creating account…' : 'Register'}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}

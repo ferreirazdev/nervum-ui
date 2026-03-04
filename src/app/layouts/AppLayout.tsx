@@ -1,17 +1,19 @@
-import { Link, Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Button } from '@/app/components/ui/button';
-
-const nav = [
-  { to: '/environments', label: 'Environments' },
-  { to: '/login', label: 'Login' },
-  { to: '/register', label: 'Register' },
-] as const;
+import { useAuth } from '@/features/auth';
 
 export function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   const isMapPage = /^\/environments\/[^/]+$/.test(location.pathname);
   const hideHeader = isAuthPage || isMapPage;
+
+  async function handleLogout() {
+    await logout();
+    navigate('/login');
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,16 +24,22 @@ export function AppLayout() {
               <span className="text-lg">Nervum</span>
             </Link>
             <nav className="flex items-center gap-1">
-              {nav.map(({ to, label }) => (
-                <Button
-                  key={to}
-                  variant={location.pathname === to ? 'secondary' : 'ghost'}
-                  size="sm"
-                  asChild
-                >
-                  <Link to={to}>{label}</Link>
+              <Button
+                variant={location.pathname === '/environments' ? 'secondary' : 'ghost'}
+                size="sm"
+                asChild
+              >
+                <Link to="/environments">Environments</Link>
+              </Button>
+              {user ? (
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  Sign out
                 </Button>
-              ))}
+              ) : (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">Sign in</Link>
+                </Button>
+              )}
             </nav>
           </div>
         </header>
