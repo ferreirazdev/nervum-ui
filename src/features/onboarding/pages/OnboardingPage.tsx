@@ -40,6 +40,7 @@ export function OnboardingPage() {
 
   const [orgName, setOrgName] = useState('');
   const [orgLoaded, setOrgLoaded] = useState(false);
+  const [org, setOrg] = useState<ApiOrganization | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [envName, setEnvName] = useState('');
   const [envDescription, setEnvDescription] = useState('');
@@ -54,8 +55,9 @@ export function OnboardingPage() {
       return;
     }
     getOrganization(user.organization_id)
-      .then((org: ApiOrganization) => {
-        setOrgName(org.name);
+      .then((o: ApiOrganization) => {
+        setOrg(o);
+        setOrgName(o.name);
         setOrgLoaded(true);
       })
       .catch(() => setOrgLoaded(true));
@@ -69,6 +71,10 @@ export function OnboardingPage() {
   }
 
   const hasOrg = !!user.organization_id;
+  if (hasOrg && orgLoaded && org && org.owner_id !== user.id) {
+    navigate('/member-onboarding', { replace: true });
+    return null;
+  }
 
   async function handleStep0Next() {
     setError(null);

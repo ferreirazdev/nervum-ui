@@ -129,10 +129,10 @@ function SystemNode({ data, id }: SystemNodeProps) {
           ${(isCentral || isCategory) ? 'cursor-pointer' : ''}
           ${
             isCentral
-              ? 'bg-gradient-to-br from-zinc-950/90 to-black border-blue-500/50 shadow-2xl shadow-blue-500/20 hover:border-blue-400 hover:shadow-blue-400/30'
+              ? 'bg-gradient-to-br from-surface to-background border-blue-500/50 shadow-2xl shadow-blue-500/20 hover:border-blue-400 hover:shadow-blue-400/30'
               : isCategory
-              ? 'bg-gradient-to-br from-zinc-950/90 to-black border-blue-500/40 shadow-lg shadow-blue-500/10 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/30 hover:bg-gradient-to-br hover:from-blue-950/20 hover:to-black'
-              : 'bg-gradient-to-br from-zinc-900/80 to-black border-purple-500/30 shadow-md shadow-purple-500/5 hover:border-purple-500/60 hover:shadow-lg hover:shadow-purple-500/20'
+              ? 'bg-gradient-to-br from-surface to-background border-blue-500/40 shadow-lg shadow-blue-500/10 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/30 hover:bg-gradient-to-br hover:from-blue-950/20 hover:to-background'
+              : 'bg-gradient-to-br from-muted to-background border-purple-500/30 shadow-md shadow-purple-500/5 hover:border-purple-500/60 hover:shadow-lg hover:shadow-purple-500/20'
           }
         `}
       >
@@ -145,8 +145,8 @@ function SystemNode({ data, id }: SystemNodeProps) {
                 isCentral
                   ? 'w-16 h-16 bg-blue-500/20 text-blue-400'
                   : isCategory
-                  ? 'w-10 h-10 bg-zinc-900/70 text-zinc-300'
-                  : 'w-8 h-8 bg-zinc-800/60 text-zinc-400'
+                  ? 'w-10 h-10 bg-muted text-foreground'
+                  : 'w-8 h-8 bg-muted/80 text-muted-foreground'
               }
             `}
           >
@@ -160,7 +160,7 @@ function SystemNode({ data, id }: SystemNodeProps) {
           {/* Label */}
           <div
             className={`
-              text-white
+              text-foreground
               ${
                 isCentral
                   ? 'text-xl font-semibold'
@@ -175,7 +175,7 @@ function SystemNode({ data, id }: SystemNodeProps) {
 
           {/* Metadata */}
           {metadata && (
-            <div className="text-[10px] text-zinc-500 mt-1">{metadata}</div>
+            <div className="text-[10px] text-muted-foreground mt-1">{metadata}</div>
           )}
 
           {/* Status Indicator */}
@@ -186,7 +186,7 @@ function SystemNode({ data, id }: SystemNodeProps) {
                   status === 'healthy' ? 'animate-pulse' : ''
                 }`}
               />
-              <span className="text-[10px] text-zinc-600 capitalize">
+              <span className="text-[10px] text-muted-foreground capitalize">
                 {status}
               </span>
             </div>

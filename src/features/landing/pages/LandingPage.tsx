@@ -27,21 +27,21 @@ export function LandingPage() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-surface/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <AppLogo className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
-            <a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Features
             </a>
-            <a href="#how-it-works" className="text-sm text-gray-400 hover:text-white transition-colors">
+            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               How it works
             </a>
-            <a href="#who" className="text-sm text-gray-400 hover:text-white transition-colors">
+            <a href="#who" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Who it&apos;s for
             </a>
             {user ? (
@@ -52,7 +52,7 @@ export function LandingPage() {
               </Button>
             ) : (
               <>
-                <Button asChild variant="ghost" className="text-gray-400 hover:text-white">
+                <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground">
                   <Link to="/login">Sign in</Link>
                 </Button>
                 <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -107,7 +107,7 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed"
+              className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed"
             >
               A live, visual map of your entire technical system. Understand impact instantly. Act with
               confidence.
@@ -125,7 +125,7 @@ export function LandingPage() {
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/5 text-base px-8">
+              <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-muted/50 text-base px-8">
                 Book a Demo
               </Button>
             </motion.div>
@@ -147,15 +147,15 @@ export function LandingPage() {
           >
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-400 mb-2">100%</div>
-              <div className="text-sm text-gray-400">System visibility</div>
+              <div className="text-sm text-muted-foreground">System visibility</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-400 mb-2">10x</div>
-              <div className="text-sm text-gray-400">Faster incident response</div>
+              <div className="text-sm text-muted-foreground">Faster incident response</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">Zero</div>
-              <div className="text-sm text-gray-400">Tool replacement needed</div>
+              <div className="text-sm text-muted-foreground">Tool replacement needed</div>
             </div>
           </motion.div>
         </div>
@@ -163,7 +163,7 @@ export function LandingPage() {
 
       {/* The Problem Section */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-red-950/5 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-red-950/5 to-background" />
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -173,7 +173,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">The problem with modern systems</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               As your system grows, so does the chaos. Knowledge is scattered, context is missing,
               and every incident becomes a treasure hunt.
             </p>
@@ -212,7 +212,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">How Nervum works</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Connect your existing tools. Get instant visibility. Automate intelligent responses.
             </p>
           </motion.div>
@@ -229,7 +229,7 @@ export function LandingPage() {
                 <Network className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-semibold mb-4">1. Connect</h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 Integrate with your cloud providers, databases, observability tools, and ticketing
                 systems. No agents to install.
               </p>
@@ -246,7 +246,7 @@ export function LandingPage() {
                 <Eye className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-semibold mb-4">2. Map</h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 Nervum automatically builds a live graph of your environments, services,
                 infrastructure, and their relationships.
               </p>
@@ -263,7 +263,7 @@ export function LandingPage() {
                 <Zap className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-semibold mb-4">3. Act</h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 Detect issues, understand impact, notify the right people, and trigger automated
                 responses — all context-aware.
               </p>
@@ -274,7 +274,7 @@ export function LandingPage() {
 
       {/* Features Section */}
       <section id="features" className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/5 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-purple-950/5 to-background" />
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -284,7 +284,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Everything you need</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Built for engineering teams who need clarity, not complexity.
             </p>
           </motion.div>
@@ -332,7 +332,7 @@ export function LandingPage() {
 
       {/* Automation Flows Section */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-green-950/5 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-green-950/5 to-background" />
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -342,7 +342,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Intelligent automation</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Turn system events into contextual actions — automatically.
             </p>
           </motion.div>
@@ -387,7 +387,7 @@ export function LandingPage() {
 
       {/* Who It's For Section */}
       <section id="who" className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-blue-950/5 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-blue-950/5 to-background" />
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -397,7 +397,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Built for growing teams</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Perfect for startups and scale-ups who need enterprise visibility without enterprise
               complexity.
             </p>
@@ -409,13 +409,13 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0 }}
-              className="p-8 rounded-xl border border-white/10 bg-gradient-to-br from-blue-950/20 to-black"
+              className="p-8 rounded-xl border border-border bg-gradient-to-br from-blue-950/20 to-background"
             >
               <div className="w-12 h-12 rounded-lg bg-blue-600/20 flex items-center justify-center mb-6">
                 <Users className="w-6 h-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold mb-3">CTOs & Tech Leads</h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 Get the system-wide visibility you need to make confident decisions, manage risk,
                 and scale infrastructure intelligently.
               </p>
@@ -426,13 +426,13 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="p-8 rounded-xl border border-white/10 bg-gradient-to-br from-purple-950/20 to-black"
+              className="p-8 rounded-xl border border-border bg-gradient-to-br from-purple-950/20 to-background"
             >
               <div className="w-12 h-12 rounded-lg bg-purple-600/20 flex items-center justify-center mb-6">
                 <Sparkles className="w-6 h-6 text-purple-400" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Founders</h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 No platform team yet? No problem. Nervum gives you production-grade system
                 intelligence from day one.
               </p>
@@ -443,13 +443,13 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-8 rounded-xl border border-white/10 bg-gradient-to-br from-green-950/20 to-black"
+              className="p-8 rounded-xl border border-border bg-gradient-to-br from-green-950/20 to-background"
             >
               <div className="w-12 h-12 rounded-lg bg-green-600/20 flex items-center justify-center mb-6">
                 <Building2 className="w-6 h-6 text-green-400" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Engineering Teams</h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 Spend less time debugging and more time building. Understand impact, find issues
                 faster, and ship with confidence.
               </p>
@@ -460,7 +460,7 @@ export function LandingPage() {
 
       {/* Trust & Security Section */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-gray-950 to-background" />
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -470,7 +470,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Enterprise-grade security</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Your system data is sensitive. We take security seriously.
             </p>
           </motion.div>
@@ -487,7 +487,7 @@ export function LandingPage() {
                 <Lock className="w-6 h-6" />
               </div>
               <h3 className="font-semibold mb-2">SOC 2 Type II</h3>
-              <p className="text-sm text-gray-400">Security certified and audited</p>
+              <p className="text-sm text-muted-foreground">Security certified and audited</p>
             </motion.div>
 
             <motion.div
@@ -501,7 +501,7 @@ export function LandingPage() {
                 <Shield className="w-6 h-6" />
               </div>
               <h3 className="font-semibold mb-2">Encrypted at rest</h3>
-              <p className="text-sm text-gray-400">AES-256 encryption</p>
+              <p className="text-sm text-muted-foreground">AES-256 encryption</p>
             </motion.div>
 
             <motion.div
@@ -515,7 +515,7 @@ export function LandingPage() {
                 <Lock className="w-6 h-6" />
               </div>
               <h3 className="font-semibold mb-2">RBAC & SSO</h3>
-              <p className="text-sm text-gray-400">Fine-grained access control</p>
+              <p className="text-sm text-muted-foreground">Fine-grained access control</p>
             </motion.div>
 
             <motion.div
@@ -529,7 +529,7 @@ export function LandingPage() {
                 <Shield className="w-6 h-6" />
               </div>
               <h3 className="font-semibold mb-2">Read-only access</h3>
-              <p className="text-sm text-gray-400">Never modifies your systems</p>
+              <p className="text-sm text-muted-foreground">Never modifies your systems</p>
             </motion.div>
           </div>
         </div>
@@ -537,7 +537,7 @@ export function LandingPage() {
 
       {/* Social Proof Section */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/5 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-purple-950/5 to-background" />
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -547,7 +547,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Trusted by engineering teams</h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Join forward-thinking companies using Nervum to scale with confidence.
             </p>
           </motion.div>
@@ -582,12 +582,12 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: testimonial.delay }}
-                className="p-8 rounded-xl border border-white/10 bg-gradient-to-br from-black to-gray-950"
+                className="p-8 rounded-xl border border-border bg-card"
               >
-                <p className="text-gray-300 leading-relaxed mb-6 italic">&quot;{testimonial.quote}&quot;</p>
+                <p className="text-foreground leading-relaxed mb-6 italic">&quot;{testimonial.quote}&quot;</p>
                 <div>
                   <div className="font-semibold">{testimonial.author}</div>
-                  <div className="text-sm text-gray-400">{testimonial.role}</div>
+                  <div className="text-sm text-muted-foreground">{testimonial.role}</div>
                 </div>
               </motion.div>
             ))}
@@ -597,7 +597,7 @@ export function LandingPage() {
 
       {/* Final CTA Section */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-blue-950/10 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-blue-950/10 to-background" />
         <div className="relative max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -606,7 +606,7 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl md:text-6xl font-bold mb-6">Ready to see your system clearly?</h2>
-            <p className="text-xl text-gray-400 mb-10 leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
               Join the early access program and get Nervum running in your infrastructure in minutes,
               not months.
             </p>
@@ -620,7 +620,7 @@ export function LandingPage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/5 text-lg px-10 py-6"
+                className="border-border text-foreground hover:bg-muted/50 text-lg px-10 py-6"
               >
                 Book a Demo
               </Button>
@@ -630,21 +630,21 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-12 px-6">
+      <footer className="border-t border-border py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Link to="/" className="flex items-center gap-2">
               <AppLogo className="h-6 w-auto" />
             </Link>
-            <div className="text-sm text-gray-400">© 2026 Nervum. Engineering Intelligence Platform.</div>
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-white transition-colors">
+            <div className="text-sm text-muted-foreground">© 2026 Nervum. Engineering Intelligence Platform.</div>
+            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              <a href="#" className="hover:text-foreground transition-colors">
                 Privacy
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-foreground transition-colors">
                 Terms
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-foreground transition-colors">
                 Security
               </a>
             </div>

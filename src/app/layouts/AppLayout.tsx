@@ -2,14 +2,16 @@ import { Outlet, useLocation } from 'react-router';
 import { DashboardLayout } from './DashboardLayout';
 
 function isDashboardRoute(pathname: string): boolean {
-  if (pathname === '/dashboard' || pathname === '/organization' || pathname === '/profile') return true;
-  return pathname === '/environments';
+  if (pathname === '/dashboard' || pathname === '/organization' || pathname === '/profile' || pathname === '/teams') return true;
+  return pathname === '/environments' || pathname.startsWith('/environments/');
 }
 
 function hideChrome(pathname: string): boolean {
   if (pathname === '/') return true;
   if (pathname === '/login' || pathname === '/register') return true;
+  if (pathname === '/accept-invite') return true;
   if (pathname === '/onboarding') return true;
+  if (pathname === '/member-onboarding') return true;
   if (/^\/environments\/[^/]+$/.test(pathname)) return true; // map page
   return false;
 }

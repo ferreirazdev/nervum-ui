@@ -13,6 +13,7 @@ export type User = {
 export type UpdateUserInput = {
   name?: string;
   organization_id?: string;
+  role?: 'admin' | 'manager' | 'member';
 };
 
 // ─── Organizations ───────────────────────────────────────────────────────────
@@ -20,16 +21,23 @@ export type UpdateUserInput = {
 export type ApiOrganization = {
   id: string;
   name: string;
+  description?: string;
+  website?: string;
+  owner_id?: string;
   created_at: string;
   updated_at: string;
 };
 
 export type CreateOrganizationInput = {
   name: string;
+  description?: string;
+  website?: string;
 };
 
 export type UpdateOrganizationInput = {
-  name: string;
+  name?: string;
+  description?: string;
+  website?: string;
 };
 
 // ─── Environments ─────────────────────────────────────────────────────────────
@@ -117,6 +125,74 @@ export type UpdateRelationshipInput = {
   metadata?: Record<string, unknown>;
 };
 
+// ─── Teams ────────────────────────────────────────────────────────────────────
+
+export type ApiTeam = {
+  id: string;
+  organization_id: string;
+  name: string;
+  icon: string;
+  environment_ids: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateTeamInput = {
+  organization_id: string;
+  name: string;
+  icon?: string;
+  environment_ids?: string[];
+};
+
+export type UpdateTeamInput = {
+  name?: string;
+  icon?: string;
+  environment_ids?: string[];
+};
+
+// ─── Invitations ──────────────────────────────────────────────────────────────
+
+export type ApiInvitation = {
+  id: string;
+  token: string;
+  email: string;
+  organization_id: string;
+  invited_by_id: string;
+  environment_id?: string;
+  expires_at: string;
+  status: string;
+  accepted_at?: string;
+  created_at: string;
+  teams?: { invitation_id: string; team_id: string }[];
+};
+
+export type CreateInvitationInput = {
+  email: string;
+  team_ids: string[];
+  environment_id?: string;
+};
+
+export type CreateInvitationResponse = {
+  invitation: ApiInvitation;
+  invite_url: string;
+  token: string;
+};
+
+export type InvitationByTokenResponse = {
+  email: string;
+  organization_id: string;
+  organization_name: string;
+  team_ids: string[];
+  environment_id?: string;
+  expires_at: string;
+};
+
+export type AcceptInvitationInput = {
+  token: string;
+  name?: string;
+  password?: string;
+};
+
 // ─── Core fetch ──────────────────────────────────────────────────────────────
 
 type ApiError = { error: string };
@@ -168,6 +244,10 @@ export function updateUser(id: string, input: UpdateUserInput): Promise<User> {
   });
 }
 
+export function getUsersByOrganization(organizationId: string): Promise<User[]> {
+  return apiFetch<User[]>(`/users?organization_id=${organizationId}`);
+}
+
 // ─── Organizations API ───────────────────────────────────────────────────────
 
 export function createOrganization(input: CreateOrganizationInput): Promise<ApiOrganization> {
@@ -212,6 +292,10 @@ export function updateEnvironment(id: string, input: UpdateEnvironmentInput): Pr
   });
 }
 
+export function deleteEnvironment(id: string): Promise<void> {
+  return apiFetch<void>(`/environments/${id}`, { method: 'DELETE' });
+}
+
 // ─── Entities API ─────────────────────────────────────────────────────────────
 
 export function listEntities(orgId: string, envId: string): Promise<ApiEntity[]> {
@@ -252,6 +336,69 @@ export function createRelationship(input: CreateRelationshipInput): Promise<ApiR
 export function updateRelationship(id: string, input: UpdateRelationshipInput): Promise<ApiRelationship> {
   return apiFetch<ApiRelationship>(`/relationships/${id}`, {
     method: 'PUT',
+    body: JSON.stringify(input),
+  });
+}
+
+// ─── Teams API ────────────────────────────────────────────────────────────────
+
+export function listTeams(orgId: string): Promise<ApiTeam[]> {
+  return apiFetch<ApiTeam[]>(`/teams?organization_id=${orgId}`);
+}
+
+export function getTeam(id: string): Promise<ApiTeam> {
+  return apiFetch<ApiTeam>(`/teams/${id}`);
+}
+
+export function createTeam(input: CreateTeamInput): Promise<ApiTeam> {
+  return apiFetch<ApiTeam>('/teams', {
+    method: 'POST',
+    body: JSON.stringify({
+      organization_id: input.organization_id,
+      name: input.name,
+      icon: input.icon ?? '',
+      environment_ids: input.environment_ids ?? [],
+    }),
+  });
+}
+
+export function updateTeam(id: string, input: UpdateTeamInput): Promise<ApiTeam> {
+  return apiFetch<ApiTeam>(`/teams/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteTeam(id: string): Promise<void> {
+  return apiFetch<void>(`/teams/${id}`, { method: 'DELETE' });
+}
+
+// ─── Invitations API ───────────────────────────────────────────────────────────
+
+export function createInvitation(orgId: string, input: CreateInvitationInput): Promise<CreateInvitationResponse> {
+  return apiFetch<CreateInvitationResponse>('/invitations', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function listInvitations(orgId: string, status?: string): Promise<ApiInvitation[]> {
+  const params = new URLSearchParams({ organization_id: orgId });
+  if (status) params.set('status', status);
+  return apiFetch<ApiInvitation[]>(`/invitations?${params.toString()}`);
+}
+
+export function deleteInvitation(id: string): Promise<void> {
+  return apiFetch<void>(`/invitations/${id}`, { method: 'DELETE' });
+}
+
+export function getInvitationByToken(token: string): Promise<InvitationByTokenResponse> {
+  return apiFetch<InvitationByTokenResponse>(`/invitations/by-token/${encodeURIComponent(token)}`);
+}
+
+export function acceptInvitation(input: AcceptInvitationInput): Promise<User> {
+  return apiFetch<User>('/invitations/accept', {
+    method: 'POST',
     body: JSON.stringify(input),
   });
 }

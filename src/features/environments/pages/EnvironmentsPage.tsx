@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { motion, useReducedMotion } from 'motion/react';
-import { Plus, Pencil, Map } from 'lucide-react';
+import { Plus, Pencil, Map, Trash2 } from 'lucide-react';
 import { useAuth } from '@/features/auth';
-import { listEnvironments, createEnvironment, updateEnvironment, type ApiEnvironment } from '@/lib/api';
+import { listEnvironments, createEnvironment, updateEnvironment, deleteEnvironment, type ApiEnvironment } from '@/lib/api';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import {
@@ -49,7 +49,7 @@ const cardItemVariantsReduced = {
   show: { opacity: 1 },
 };
 
-function EnvironmentCard({ env, onEdit }: { env: ApiEnvironment; onEdit: (env: ApiEnvironment) => void }) {
+function EnvironmentCard({ env, onEdit, onDelete }: { env: ApiEnvironment; onEdit: (env: ApiEnvironment) => void; onDelete: (env: ApiEnvironment) => void }) {
   const servicesCount = env.services_count ?? 0;
   return (
     <Link
@@ -57,18 +57,32 @@ function EnvironmentCard({ env, onEdit }: { env: ApiEnvironment; onEdit: (env: A
       className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:scale-[1.02] hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <div className="flex h-32 items-center justify-center border-b border-border bg-muted/50 relative">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onEdit(env);
-          }}
-          className="absolute top-2 right-2 rounded-lg border border-border bg-card/90 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted"
-          title="Edit environment"
-        >
-          <Pencil className="h-4 w-4 text-muted-foreground" />
-        </button>
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit(env);
+            }}
+            className="rounded-lg border border-border bg-card/90 p-2 hover:bg-muted"
+            title="Edit environment"
+          >
+            <Pencil className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(env);
+            }}
+            className="rounded-lg border border-border bg-card/90 p-2 hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive"
+            title="Delete environment"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
           <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -288,6 +302,96 @@ function EditEnvironmentDialog({ env, open, onClose, onSaved }: EditDialogProps)
   );
 }
 
+// ─── Delete environment dialog ───────────────────────────────────────────────
+
+type DeleteDialogProps = {
+  env: ApiEnvironment | null;
+  open: boolean;
+  onClose: () => void;
+  onDeleted: () => void;
+};
+
+const CONFIRM_TEXT = 'delete';
+
+function DeleteEnvironmentDialog({ env, open, onClose, onDeleted }: DeleteDialogProps) {
+  const [confirmValue, setConfirmValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (env || !open) {
+      setConfirmValue('');
+      setError(null);
+    }
+  }, [env, open]);
+
+  async function handleSubmit(e: { preventDefault(): void }) {
+    e.preventDefault();
+    if (!env || confirmValue.trim().toLowerCase() !== CONFIRM_TEXT) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await deleteEnvironment(env.id);
+      setConfirmValue('');
+      onDeleted();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete environment');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleOpenChange(openState: boolean) {
+    if (!openState) {
+      setConfirmValue('');
+      setError(null);
+      onClose();
+    }
+  }
+
+  if (!env) return null;
+
+  const canDelete = confirmValue.trim().toLowerCase() === CONFIRM_TEXT && !loading;
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete environment</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            This will permanently delete the environment <strong className="text-foreground">&quot;{env.name}&quot;</strong> and any
+            associated data (e.g. entities, relationships). This action cannot be undone.
+          </p>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              Type &quot;{CONFIRM_TEXT}&quot; to confirm
+            </label>
+            <Input
+              placeholder={`Type "${CONFIRM_TEXT}" to confirm`}
+              value={confirmValue}
+              onChange={(e) => setConfirmValue(e.target.value)}
+              autoFocus
+              autoComplete="off"
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="destructive" disabled={!canDelete}>
+              {loading ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function EnvironmentsPage() {
@@ -297,6 +401,7 @@ export function EnvironmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingEnv, setEditingEnv] = useState<ApiEnvironment | null>(null);
+  const [deletingEnv, setDeletingEnv] = useState<ApiEnvironment | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
   const orgId = user?.organization_id;
@@ -319,6 +424,11 @@ export function EnvironmentsPage() {
   function handleSaved(updated: ApiEnvironment) {
     setEnvironments((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
     setEditingEnv(null);
+  }
+
+  function handleDeleted() {
+    if (deletingEnv) setEnvironments((prev) => prev.filter((e) => e.id !== deletingEnv.id));
+    setDeletingEnv(null);
   }
 
   if (loading) {
@@ -389,7 +499,7 @@ export function EnvironmentsPage() {
               key={env.id}
               variants={shouldReduceMotion ? cardItemVariantsReduced : cardItemVariants}
             >
-              <EnvironmentCard env={env} onEdit={setEditingEnv} />
+              <EnvironmentCard env={env} onEdit={setEditingEnv} onDelete={setDeletingEnv} />
             </motion.div>
           ))}
         </motion.div>
@@ -406,6 +516,12 @@ export function EnvironmentsPage() {
         open={!!editingEnv}
         onClose={() => setEditingEnv(null)}
         onSaved={handleSaved}
+      />
+      <DeleteEnvironmentDialog
+        env={deletingEnv}
+        open={!!deletingEnv}
+        onClose={() => setDeletingEnv(null)}
+        onDeleted={handleDeleted}
       />
     </div>
   );
