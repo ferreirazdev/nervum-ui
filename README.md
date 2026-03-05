@@ -1,5 +1,7 @@
 # Nervum – Environment Maps UI (SaaS frontend)
 
+![Nervum logo](./logo.png)
+
 **Nervum** is a SaaS for visualizing and managing your software environments as a living map – services, databases, queues, and the relationships between them. This repository contains the **React frontend** (`nervum-ui`) that your users interact with in the browser.
 
 It talks to the Go API in [`nervum-go`](https://github.com/nervum/nervum-go) and provides:
