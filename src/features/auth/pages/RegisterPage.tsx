@@ -21,6 +21,7 @@ import {
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '../context';
 import { getOnboardingCompleted } from '@/lib/onboarding';
+import { AppLogo } from '@/app/components/AppLogo';
 
 type RegisterFormValues = {
   name: string;
@@ -43,7 +44,7 @@ export function RegisterPage() {
     setError(null);
     try {
       await register(values.name, values.email, values.password);
-      navigate(getOnboardingCompleted() ? '/environments' : '/onboarding');
+      navigate(getOnboardingCompleted() ? '/dashboard' : '/onboarding');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Registration failed');
     }
@@ -51,7 +52,11 @@ export function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border-border bg-card">
+      <div className="flex flex-col items-center w-full max-w-md">
+        <Link to="/" className="mb-6">
+          <AppLogo className="h-10 w-auto" />
+        </Link>
+        <Card className="w-full border-border bg-card">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>Enter your details to register.</CardDescription>
@@ -143,6 +148,7 @@ export function RegisterPage() {
           </form>
         </Form>
       </Card>
+      </div>
     </div>
   );
 }

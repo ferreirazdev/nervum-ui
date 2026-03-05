@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/features/auth';
 import {
   getOnboardingCompleted,
@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/app/components/ui/card';
+import { AppLogo } from '@/app/components/AppLogo';
 
 const STEPS = [
   { title: 'Organization', description: 'Create your workspace' },
@@ -63,7 +64,7 @@ export function OnboardingPage() {
   if (authLoading || !user) return null;
 
   if (getOnboardingCompleted()) {
-    navigate('/environments', { replace: true });
+    navigate('/dashboard', { replace: true });
     return null;
   }
 
@@ -132,6 +133,9 @@ export function OnboardingPage() {
 
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-2xl flex-col justify-center px-4 py-12">
+      <Link to="/" className="mb-4 flex justify-center">
+        <AppLogo className="h-10 w-auto" />
+      </Link>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Welcome to Nervum</h1>
         <p className="mt-1 text-muted-foreground">Complete these steps to get started.</p>

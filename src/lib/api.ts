@@ -63,6 +63,8 @@ export type EntityMetadata = {
   icon?: string;
   display_metadata?: string;
   position?: { x: number; y: number };
+  parentEdgeSourceHandle?: string;
+  parentEdgeTargetHandle?: string;
 };
 
 export type ApiEntity = {
@@ -104,6 +106,15 @@ export type CreateRelationshipInput = {
   from_entity_id: string;
   to_entity_id: string;
   type: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type UpdateRelationshipInput = {
+  organization_id: string;
+  from_entity_id: string;
+  to_entity_id: string;
+  type: string;
+  metadata?: Record<string, unknown>;
 };
 
 // ─── Core fetch ──────────────────────────────────────────────────────────────
@@ -221,6 +232,10 @@ export function updateEntity(id: string, input: Partial<Omit<ApiEntity, 'id' | '
   });
 }
 
+export function deleteEntity(id: string): Promise<void> {
+  return apiFetch<void>(`/entities/${id}`, { method: 'DELETE' });
+}
+
 // ─── Relationships API ────────────────────────────────────────────────────────
 
 export function listRelationships(orgId: string): Promise<ApiRelationship[]> {
@@ -230,6 +245,13 @@ export function listRelationships(orgId: string): Promise<ApiRelationship[]> {
 export function createRelationship(input: CreateRelationshipInput): Promise<ApiRelationship> {
   return apiFetch<ApiRelationship>('/relationships', {
     method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateRelationship(id: string, input: UpdateRelationshipInput): Promise<ApiRelationship> {
+  return apiFetch<ApiRelationship>(`/relationships/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(input),
   });
 }

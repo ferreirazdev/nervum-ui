@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plus, Pencil } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { Plus, Pencil, Map } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import { listEnvironments, createEnvironment, updateEnvironment, type ApiEnvironment } from '@/lib/api';
 import { Button } from '@/app/components/ui/button';
@@ -30,12 +31,30 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Environment card ─────────────────────────────────────────────────────────
 
+const cardListVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05, delayChildren: 0.03 },
+  },
+};
+
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 },
+};
+
+const cardItemVariantsReduced = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1 },
+};
+
 function EnvironmentCard({ env, onEdit }: { env: ApiEnvironment; onEdit: (env: ApiEnvironment) => void }) {
   const servicesCount = env.services_count ?? 0;
   return (
     <Link
       to={`/environments/${env.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:scale-[1.02] hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <div className="flex h-32 items-center justify-center border-b border-border bg-muted/50 relative">
         <button
@@ -278,6 +297,7 @@ export function EnvironmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingEnv, setEditingEnv] = useState<ApiEnvironment | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const orgId = user?.organization_id;
 
@@ -344,19 +364,35 @@ export function EnvironmentsPage() {
       </div>
 
       {environments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
-          <p className="text-muted-foreground">No environments yet.</p>
-          <Button variant="ghost" className="mt-4" onClick={() => setShowCreate(true)}>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Map className="h-7 w-7" aria-hidden />
+          </div>
+          <h2 className="mt-4 text-lg font-semibold text-foreground">No environments yet</h2>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+            Create your first environment to start mapping services and dependencies.
+          </p>
+          <Button className="mt-6" onClick={() => setShowCreate(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create your first environment
           </Button>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          variants={cardListVariants}
+          initial="hidden"
+          animate="show"
+        >
           {environments.map((env) => (
-            <EnvironmentCard key={env.id} env={env} onEdit={setEditingEnv} />
+            <motion.div
+              key={env.id}
+              variants={shouldReduceMotion ? cardItemVariantsReduced : cardItemVariants}
+            >
+              <EnvironmentCard env={env} onEdit={setEditingEnv} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <CreateEnvironmentDialog

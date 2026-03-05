@@ -1,9 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { AppLayout } from './layouts/AppLayout';
+import { LandingPage } from '@/features/landing';
 import { MapPageWithProvider } from '@/features/map';
 import { LoginPage, RegisterPage, AuthProvider, useAuth } from '@/features/auth';
 import { EnvironmentsPage } from '@/features/environments';
 import { OnboardingPage } from '@/features/onboarding';
+import { DashboardPage } from '@/features/dashboard';
+import { OrganizationPage } from '@/features/organization';
+import { ProfilePage } from '@/features/profile';
 import { getOnboardingCompleted } from '@/lib/onboarding';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -24,15 +28,34 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route element={<AppLayout />}>
+            <Route index element={<LandingPage />} />
             <Route
-              index
+              path="dashboard"
               element={
                 <ProtectedRoute>
-                  {getOnboardingCompleted() ? (
-                    <Navigate to="/environments" replace />
-                  ) : (
-                    <Navigate to="/onboarding" replace />
-                  )}
+                  <RequireOnboardingCompleted>
+                    <DashboardPage />
+                  </RequireOnboardingCompleted>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="organization"
+              element={
+                <ProtectedRoute>
+                  <RequireOnboardingCompleted>
+                    <OrganizationPage />
+                  </RequireOnboardingCompleted>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <RequireOnboardingCompleted>
+                    <ProfilePage />
+                  </RequireOnboardingCompleted>
                 </ProtectedRoute>
               }
             />

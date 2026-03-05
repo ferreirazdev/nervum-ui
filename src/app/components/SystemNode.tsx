@@ -101,13 +101,22 @@ function SystemNode({ data, id }: SystemNodeProps) {
       `}
       onClick={handleClick}
     >
-      {/* Handles for connections */}
+      {/* Connection handles: 4 sides × source + target for flexible edge positioning */}
       {!isCentral && (
-        <Handle
-          type="target"
-          position={Position.Top}
-          className="w-2 h-2 !bg-blue-400 !border-2 !border-blue-600"
-        />
+        <>
+          <Handle type="target" position={Position.Top} id="target-top" className="w-2 h-2 !bg-blue-400 !border-2 !border-blue-600" />
+          <Handle type="target" position={Position.Right} id="target-right" className="w-2 h-2 !bg-blue-400 !border-2 !border-blue-600" />
+          <Handle type="target" position={Position.Bottom} id="target-bottom" className="w-2 h-2 !bg-blue-400 !border-2 !border-blue-600" />
+          <Handle type="target" position={Position.Left} id="target-left" className="w-2 h-2 !bg-blue-400 !border-2 !border-blue-600" />
+        </>
+      )}
+      {(isCentral || isCategory || type === 'leaf') && (
+        <>
+          <Handle type="source" position={Position.Top} id="source-top" className="w-2 h-2 !bg-purple-400 !border-2 !border-purple-600" />
+          <Handle type="source" position={Position.Right} id="source-right" className="w-2 h-2 !bg-purple-400 !border-2 !border-purple-600" />
+          <Handle type="source" position={Position.Bottom} id="source-bottom" className="w-2 h-2 !bg-purple-400 !border-2 !border-purple-600" />
+          <Handle type="source" position={Position.Left} id="source-left" className="w-2 h-2 !bg-purple-400 !border-2 !border-purple-600" />
+        </>
       )}
 
       {/* Node Content */}
@@ -198,15 +207,6 @@ function SystemNode({ data, id }: SystemNodeProps) {
           `}
         />
       </div>
-
-      {/* Output Handles */}
-      {(isCentral || isCategory) && (
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          className="w-2 h-2 !bg-purple-400 !border-2 !border-purple-600"
-        />
-      )}
     </div>
   );
 }

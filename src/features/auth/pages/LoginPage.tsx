@@ -21,6 +21,7 @@ import {
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '../context';
 import { getOnboardingCompleted } from '@/lib/onboarding';
+import { AppLogo } from '@/app/components/AppLogo';
 
 type LoginFormValues = {
   email: string;
@@ -39,7 +40,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(values.email, values.password);
-      navigate(getOnboardingCompleted() ? '/environments' : '/onboarding');
+      navigate(getOnboardingCompleted() ? '/dashboard' : '/onboarding');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Login failed');
     }
@@ -47,7 +48,11 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border-border bg-card">
+      <div className="flex flex-col items-center w-full max-w-md">
+        <Link to="/" className="mb-6">
+          <AppLogo className="h-10 w-auto" />
+        </Link>
+        <Card className="w-full border-border bg-card">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl">Sign in</CardTitle>
           <CardDescription>Enter your email and password to sign in.</CardDescription>
@@ -105,6 +110,7 @@ export function LoginPage() {
           </form>
         </Form>
       </Card>
+      </div>
     </div>
   );
 }
