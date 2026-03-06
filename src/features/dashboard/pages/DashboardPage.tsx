@@ -108,7 +108,7 @@ export function DashboardPage() {
   }, [user?.organization_id]);
 
   return (
-    <div className="flex gap-8">
+    <div className="flex gap-8 px-4 sm:px-20">
       <div className="flex-1 min-w-0 space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">

@@ -1,3 +1,5 @@
+import { cn } from '@/app/components/ui/utils';
+
 interface AppLogoProps {
   className?: string;
 }
@@ -7,7 +9,9 @@ export function AppLogo({ className }: AppLogoProps) {
     <img
       src="/logo.png"
       alt="Nervum"
-      className={className ?? 'h-8 w-auto'}
+      width={875}
+      height={247}
+      className={cn('block min-w-0 object-contain object-left', className ?? 'h-10 w-auto')}
     />
   );
 }

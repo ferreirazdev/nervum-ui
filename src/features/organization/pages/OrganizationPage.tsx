@@ -131,7 +131,7 @@ export function OrganizationPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 sm:px-20">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Organization</h1>
           <p className="mt-1 text-muted-foreground">Manage your workspace.</p>
@@ -150,7 +150,7 @@ export function OrganizationPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Organization</h1>
         <p className="mt-1 text-muted-foreground">

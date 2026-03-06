@@ -32,7 +32,7 @@ export function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-surface/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <AppLogo className="h-8 w-auto" />
+            <AppLogo className="h-11 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -634,7 +634,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Link to="/" className="flex items-center gap-2">
-              <AppLogo className="h-6 w-auto" />
+              <AppLogo className="h-8 w-auto" />
             </Link>
             <div className="text-sm text-muted-foreground">© 2026 Nervum. Engineering Intelligence Platform.</div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

@@ -75,13 +75,13 @@ export function DashboardLayout() {
   return (
     <SidebarProvider>
       <Sidebar side="left" collapsible="icon">
-        <SidebarHeader className="border-b border-sidebar-border">
+        <SidebarHeader className="border-b border-sidebar-border p-4">
           <Link
             to="/dashboard"
             className="flex h-8 items-center gap-2 px-2 font-semibold text-sidebar-foreground"
           >
             <AppLogo className="h-10 w-auto shrink-0" />
-            <span className="text-lg group-data-[collapsible=icon]:hidden">Nervum</span>
+            {/* <span className="text-lg group-data-[collapsible=icon]:hidden">Nervum</span> */}
           </Link>
         </SidebarHeader>
         <SidebarContent>

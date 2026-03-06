@@ -433,7 +433,7 @@ export function EnvironmentsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-8 px-4 sm:px-20">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Environments</h1>
           <p className="mt-1 text-muted-foreground">Your software environment maps.</p>
@@ -449,7 +449,7 @@ export function EnvironmentsPage() {
 
   if (error) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-8 px-4 sm:px-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Environments</h1>
         </div>
@@ -459,7 +459,7 @@ export function EnvironmentsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-4 sm:px-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Environments</h1>
