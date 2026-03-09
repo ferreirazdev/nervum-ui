@@ -34,3 +34,10 @@ export function canInvite(role: string): boolean {
 export function canListOrgMembers(role: string): boolean {
   return role === 'admin' || role === 'manager';
 }
+
+/** Roles the current user can assign when creating an invitation. */
+export function getAllowedInviteRoles(currentRole: string): string[] {
+  if (currentRole === 'admin') return ['admin', 'manager', 'member'];
+  if (currentRole === 'manager') return ['manager', 'member'];
+  return [];
+}

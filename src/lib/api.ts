@@ -73,6 +73,8 @@ export type EntityMetadata = {
   position?: { x: number; y: number };
   parentEdgeSourceHandle?: string;
   parentEdgeTargetHandle?: string;
+  urls?: { name: string; link: string }[];
+  integrations?: { name: string; type?: string }[];
 };
 
 export type ApiEntity = {
@@ -158,6 +160,7 @@ export type ApiInvitation = {
   email: string;
   organization_id: string;
   invited_by_id: string;
+  role?: string;
   environment_id?: string;
   expires_at: string;
   status: string;
@@ -170,6 +173,7 @@ export type CreateInvitationInput = {
   email: string;
   team_ids: string[];
   environment_id?: string;
+  role?: string;
 };
 
 export type CreateInvitationResponse = {
@@ -184,6 +188,7 @@ export type InvitationByTokenResponse = {
   organization_name: string;
   team_ids: string[];
   environment_id?: string;
+  role?: string;
   expires_at: string;
 };
 

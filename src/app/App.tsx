@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router';
 import React from 'react';
 import { ThemeProvider } from 'next-themes';
 import { AppLayout } from './layouts/AppLayout';
@@ -10,7 +10,9 @@ import { OnboardingPage, MemberOnboardingPage } from '@/features/onboarding';
 import { DashboardPage } from '@/features/dashboard';
 import { OrganizationPage } from '@/features/organization';
 import { TeamsPage } from '@/features/teams';
+import { UsersPage } from '@/features/users';
 import { ProfilePage } from '@/features/profile';
+import { IntegrationsPage } from '@/features/integrations';
 import { AcceptInvitePage } from '@/features/invitations';
 import { ChatProvider, GlobalChat } from '@/features/chat';
 import { Toaster } from '@/app/components/ui/sonner';
@@ -70,103 +72,127 @@ function RequireOnboardingCompleted({ children }: { children: React.ReactNode })
   return <>{children}</>;
 }
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <LandingPage /> },
+      {
+        path: 'dashboard',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <DashboardPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'organization',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <RequireOrgAccess>
+                <OrganizationPage />
+              </RequireOrgAccess>
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'teams',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <TeamsPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <RequireOrgAccess>
+                <UsersPage />
+              </RequireOrgAccess>
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <ProfilePage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'integrations',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <IntegrationsPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'onboarding',
+        element: (
+          <ProtectedRoute>
+            <OnboardingPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'member-onboarding',
+        element: (
+          <ProtectedRoute>
+            <MemberOnboardingPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'environments',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <EnvironmentsPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'environments/:envId',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <MapPageWithProvider />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'register', element: <RegisterPage /> },
+      { path: 'accept-invite', element: <AcceptInvitePage /> },
+    ],
+  },
+]);
+
 export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" storageKey="nervum-theme">
-      <BrowserRouter>
-        <AuthProvider>
-          <ChatProvider>
-            <Routes>
-            <Route element={<AppLayout />}>
-              <Route index element={<LandingPage />} />
-              <Route
-                path="dashboard"
-                element={
-                <ProtectedRoute>
-                  <RequireOnboardingCompleted>
-                    <DashboardPage />
-                  </RequireOnboardingCompleted>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="organization"
-              element={
-                <ProtectedRoute>
-                  <RequireOnboardingCompleted>
-                    <RequireOrgAccess>
-                      <OrganizationPage />
-                    </RequireOrgAccess>
-                  </RequireOnboardingCompleted>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="teams"
-              element={
-                <ProtectedRoute>
-                  <RequireOnboardingCompleted>
-                    <TeamsPage />
-                  </RequireOnboardingCompleted>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute>
-                  <RequireOnboardingCompleted>
-                    <ProfilePage />
-                  </RequireOnboardingCompleted>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="onboarding"
-              element={
-                <ProtectedRoute>
-                  <OnboardingPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="member-onboarding"
-              element={
-                <ProtectedRoute>
-                  <MemberOnboardingPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="environments"
-              element={
-                <ProtectedRoute>
-                  <RequireOnboardingCompleted>
-                    <EnvironmentsPage />
-                  </RequireOnboardingCompleted>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="environments/:envId"
-              element={
-                <ProtectedRoute>
-                  <RequireOnboardingCompleted>
-                    <MapPageWithProvider />
-                  </RequireOnboardingCompleted>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
-            <Route path="accept-invite" element={<AcceptInvitePage />} />
-            </Route>
-          </Routes>
-          <GlobalChat />
-          <Toaster />
+      <AuthProvider>
+        <ChatProvider>
+          <RouterProvider router={router} />
         </ChatProvider>
       </AuthProvider>
-    </BrowserRouter>
     </ThemeProvider>
   );
 }

@@ -27,8 +27,22 @@ export interface AddNodePayload {
   icon: string;
   status: NodeStatus;
   metadata?: string;
+  urls?: { name: string; link: string }[];
+  integrations?: { name: string; type?: string }[];
   sourceHandle?: HandlePosition;
   targetHandle?: HandlePosition;
+}
+
+/** Entity data for edit mode in AddNodeModal */
+export interface EditingEntity {
+  id: string;
+  name: string;
+  type: EntityType;
+  icon: string;
+  status: NodeStatus;
+  metadata?: string;
+  urls?: { name: string; link: string }[];
+  integrations?: { name: string; type?: string }[];
 }
 
 export interface CreateConnectionPayload {

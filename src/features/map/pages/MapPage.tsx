@@ -1,5 +1,5 @@
-import { useCallback, useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router';
+import { useCallback, useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useBlocker } from 'react-router';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -17,8 +17,23 @@ import { Save, Link2, Trash2 } from 'lucide-react';
 import SystemNode from '@/app/components/SystemNode';
 import { CommandBar } from '@/app/components/CommandBar';
 import { Controls } from '@/app/components/Controls';
-import { AddNodeModal } from '@/app/components/AddNodeModal';
+import { AddNodeForm } from '@/app/components/AddNodeForm';
+import { AddCategoryModal } from '@/app/components/AddCategoryModal';
 import { AddConnectionModal, getLeafNodesFromFlow } from '@/app/components/AddConnectionModal';
+import { SidebarTrigger } from '@/app/components/ui/sidebar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/app/components/ui/sheet';
 import { useAuth } from '@/features/auth';
 import {
   listEnvironments,
@@ -48,13 +63,68 @@ import {
   parseTargetHandleId,
   getBestHandles,
 } from '@/features/map/constants';
-import type { HandlePosition } from '@/features/map/constants';
+import type { HandlePosition, EntityType } from '@/features/map/constants';
 import type { SelectedNode } from '@/features/map/types';
-import type { AddNodePayload, CreateConnectionPayload } from '@/features/map/types';
+import type { AddNodePayload, CreateConnectionPayload, EditingEntity } from '@/features/map/types';
 
 const nodeTypes: NodeTypes = { systemNode: SystemNode };
 
 const CENTRAL_HANDLES_STORAGE_KEY = 'nervum-map-central-handles';
+const ENABLED_CATEGORIES_STORAGE_KEY = 'nervum-map-categories';
+const VIEWPORT_STORAGE_KEY = 'nervum-map-viewport';
+
+const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.7 };
+
+type Viewport = { x: number; y: number; zoom: number };
+
+function getStoredViewport(envId: string | undefined): Viewport | null {
+  if (!envId) return null;
+  try {
+    const raw = localStorage.getItem(`${VIEWPORT_STORAGE_KEY}-${envId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object') return null;
+    const { x, y, zoom } = parsed as Record<string, unknown>;
+    if (
+      typeof x !== 'number' || !Number.isFinite(x) ||
+      typeof y !== 'number' || !Number.isFinite(y) ||
+      typeof zoom !== 'number' || !Number.isFinite(zoom)
+    ) return null;
+    return { x, y, zoom };
+  } catch {
+    return null;
+  }
+}
+
+function setStoredViewport(envId: string | undefined, vp: Viewport): void {
+  if (!envId) return;
+  try {
+    localStorage.setItem(`${VIEWPORT_STORAGE_KEY}-${envId}`, JSON.stringify(vp));
+  } catch (err) {
+    console.error('Failed to save viewport:', err);
+  }
+}
+
+function getEnabledCategoryTypes(envId: string | undefined): EntityType[] {
+  if (!envId) return [];
+  try {
+    const raw = localStorage.getItem(`${ENABLED_CATEGORIES_STORAGE_KEY}-${envId}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((t): t is EntityType => typeof t === 'string');
+  } catch {
+    return [];
+  }
+}
+
+function setEnabledCategoryTypes(envId: string, types: EntityType[]): void {
+  try {
+    localStorage.setItem(`${ENABLED_CATEGORIES_STORAGE_KEY}-${envId}`, JSON.stringify(types));
+  } catch (err) {
+    console.error('Failed to save enabled categories:', err);
+  }
+}
 
 function applyStoredCentralHandles(edges: Edge[], envId: string | undefined): Edge[] {
   if (!envId) return edges;
@@ -101,8 +171,9 @@ export function MapPage() {
   const [showCosts, setShowCosts] = useState(true);
   const [showOwnership, setShowOwnership] = useState(true);
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
-  const [isAddNodeModalOpen, setIsAddNodeModalOpen] = useState(false);
-  const [modalDefaultHandles, setModalDefaultHandles] = useState<{ sourceHandle: HandlePosition; targetHandle: HandlePosition }>({
+  const [editingEntity, setEditingEntity] = useState<EditingEntity | null>(null);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [nodePanelDefaultHandles, setNodePanelDefaultHandles] = useState<{ sourceHandle: HandlePosition; targetHandle: HandlePosition }>({
     sourceHandle: DEFAULT_SOURCE_HANDLE,
     targetHandle: DEFAULT_TARGET_HANDLE,
   });
@@ -115,6 +186,11 @@ export function MapPage() {
   } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+
+  const viewportRef = useRef<Viewport>(DEFAULT_VIEWPORT);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastLoadedEnvIdRef = useRef<string | null>(null);
+  const [viewport, setViewportState] = useState<Viewport | null>(null);
 
   const orgId = user?.organization_id;
 
@@ -131,14 +207,21 @@ export function MapPage() {
         setRelationships(rels);
         const env = envs.find((e) => e.id === envId) ?? null;
         setCurrentEnv(env);
+        const enabledCategoryTypes = getEnabledCategoryTypes(envId);
         const { nodes: n, edges: e } = buildGraph(
           envId,
           env?.name ?? 'Environment',
           entities,
           rels,
+          enabledCategoryTypes,
         );
         setNodes(n);
         setEdges(applyStoredCentralHandles(e, envId));
+        const stored = getStoredViewport(envId);
+        const initialViewport = stored ?? DEFAULT_VIEWPORT;
+        setViewportState(initialViewport);
+        viewportRef.current = initialViewport;
+        lastLoadedEnvIdRef.current = envId;
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -159,18 +242,84 @@ export function MapPage() {
     [],
   );
 
+  const VIEWPORT_DEBOUNCE_MS = 400;
+  const onViewportChange = useCallback(
+    (next: Viewport) => {
+      setViewportState(next);
+      viewportRef.current = next;
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = setTimeout(() => {
+        debounceTimeoutRef.current = null;
+        if (envId) setStoredViewport(envId, next);
+      }, VIEWPORT_DEBOUNCE_MS);
+    },
+    [envId],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
+      if (envId) setStoredViewport(envId, viewportRef.current);
+    };
+  }, [envId]);
+
+  useEffect(() => {
+    if (!envId) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      setStoredViewport(envId, viewportRef.current);
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [envId]);
+
   const handleNodeClick = useCallback((nodeId: string, nodeData: { label: string; type: string }) => {
-    if (nodeId.startsWith('central-') || nodeId.startsWith('cat-')) {
+    if (nodeId.startsWith('central-')) {
+      setIsAddCategoryModalOpen(true);
+      return;
+    }
+    if (nodeId.startsWith('cat-')) {
       setSelectedNode({ id: nodeId, label: nodeData.label, type: nodeData.type });
-      setIsAddNodeModalOpen(true);
 
       // Compute geometric default handles based on category position → expected new leaf position
-      const catType = nodeId.startsWith('cat-') ? nodeId.replace('cat-', '') : nodeData.type;
+      const catType = nodeId.replace('cat-', '');
       const catNode = nodes.find((n) => n.id === nodeId);
       const catPos = catNode?.position ?? CATEGORY_POSITIONS[catType] ?? { x: 600, y: 400 };
       const siblingCount = nodes.filter((n) => n.data._entityType === catType).length;
       const newPos = defaultLeafPosition(catPos, siblingCount);
-      setModalDefaultHandles(getBestHandles(catPos, newPos));
+      setNodePanelDefaultHandles(getBestHandles(catPos, newPos));
+      return;
+    }
+    // Leaf node: open right sidebar (edit) and optionally select first edge for connection panel
+    if (isLeafNodeId(nodeId)) {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (node?.data) {
+        const meta = node.data._entityMeta as {
+          display_metadata?: string;
+          urls?: { name: string; link: string }[];
+          integrations?: { name: string; type?: string }[];
+        } | undefined;
+        setEditingEntity({
+          id: nodeId,
+          name: (node.data.label as string) ?? nodeId,
+          type: (node.data._entityType as EntityType) ?? 'service',
+          icon: (node.data.icon as string) ?? 'server',
+          status: (node.data.status as 'healthy' | 'warning' | 'critical') ?? 'healthy',
+          metadata: (node.data.metadata as string) ?? meta?.display_metadata,
+          urls: meta?.urls,
+          integrations: meta?.integrations,
+        });
+      }
+      setEdges((prev) => {
+        const nodeEdges = prev.filter((e) => e.source === nodeId || e.target === nodeId);
+        if (nodeEdges.length === 0) return prev;
+        const firstId = nodeEdges[0].id;
+        return prev.map((e) => ({ ...e, selected: e.id === firstId }));
+      });
     }
   }, [nodes]);
 
@@ -211,10 +360,8 @@ export function MapPage() {
   const handleAddNode = useCallback(
     async (payload: AddNodePayload) => {
       if (!selectedNode || !orgId || !envId) return;
-
-      const categoryId = selectedNode.id.startsWith('cat-')
-        ? selectedNode.id
-        : `cat-${payload.type}`;
+      // selectedNode is always a category (cat-*) when this is called
+      const categoryId = selectedNode.id;
       const catNode = nodes.find((n) => n.id === categoryId);
       const catPos = catNode?.position ?? CATEGORY_POSITIONS[payload.type] ?? { x: 600, y: 400 };
       const siblingCount = nodes.filter(
@@ -239,6 +386,8 @@ export function MapPage() {
             position,
             parentEdgeSourceHandle: sh,
             parentEdgeTargetHandle: th,
+            urls: payload.urls,
+            integrations: payload.integrations,
           },
         });
 
@@ -268,44 +417,108 @@ export function MapPage() {
           style: { stroke: '#a78bfa', strokeWidth: 1.5 },
         };
 
-        if (!catNode && selectedNode.id.startsWith('central-')) {
-          const nodeType = ENTITY_TYPE_TO_NODE_TYPE[payload.type] ?? 'leaf';
-          const label = nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
-          const newCatNode: Node = {
-            id: categoryId,
-            type: 'systemNode',
-            position: catPos,
-            data: {
-              label,
-              type: nodeType,
-              icon: CATEGORY_ICON[payload.type] ?? 'server',
-            },
-          };
-          const centralId = selectedNode.id;
-          const centralHandles = getBestHandles({ x: 600, y: 400 }, catPos);
-          const centralToCatEdge: Edge = {
-            id: `e-central-${categoryId}`,
-            source: centralId,
-            target: categoryId,
-            sourceHandle: toSourceHandleId(centralHandles.sourceHandle),
-            targetHandle: toTargetHandleId(centralHandles.targetHandle),
-            type: 'smoothstep',
-            animated: true,
-            style: { stroke: '#60a5fa', strokeWidth: 2 },
-          };
-          setNodes((prev) => [...prev, newCatNode, entityNode]);
-          setEdges((prev) => [...prev, centralToCatEdge, catToEntityEdge]);
-        } else {
-          setNodes((prev) => [...prev, entityNode]);
-          setEdges((prev) => [...prev, catToEntityEdge]);
-        }
-        setIsAddNodeModalOpen(false);
+        setNodes((prev) => [...prev, entityNode]);
+        setEdges((prev) => [...prev, catToEntityEdge]);
         setSelectedNode(null);
       } catch (err) {
         console.error('Failed to create entity:', err);
       }
     },
     [selectedNode, orgId, envId, nodes],
+  );
+
+  const handleUpdateNode = useCallback(
+    async (entityId: string, payload: AddNodePayload) => {
+      if (!orgId || !envId) return;
+      const node = nodes.find((n) => n.id === entityId);
+      if (!node) return;
+      const existingMeta = (node.data._entityMeta ?? {}) as Record<string, unknown>;
+      try {
+        await updateEntity(entityId, {
+          organization_id: orgId,
+          environment_id: envId,
+          type: payload.type,
+          name: payload.name,
+          status: payload.status,
+          metadata: {
+            ...existingMeta,
+            icon: payload.icon,
+            display_metadata: payload.metadata,
+            position: node.position,
+            urls: payload.urls,
+            integrations: payload.integrations,
+          },
+        });
+        setNodes((prev) =>
+          prev.map((n) =>
+            n.id === entityId
+              ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    label: payload.name,
+                    icon: payload.icon,
+                    status: payload.status,
+                    metadata: payload.metadata,
+                    _entityMeta: {
+                      ...existingMeta,
+                      icon: payload.icon,
+                      display_metadata: payload.metadata,
+                      urls: payload.urls,
+                      integrations: payload.integrations,
+                    },
+                  },
+                }
+              : n,
+          ),
+        );
+        setEditingEntity(null);
+      } catch (err) {
+        console.error('Failed to update entity:', err);
+      }
+    },
+    [nodes, orgId, envId],
+  );
+
+  const handleAddCategory = useCallback(
+    (type: EntityType) => {
+      if (!envId) return;
+      const current = getEnabledCategoryTypes(envId);
+      if (current.includes(type)) return;
+      setEnabledCategoryTypes(envId, [...current, type]);
+
+      const centralId = `central-${envId}`;
+      const categoryId = `cat-${type}`;
+      const catPos = CATEGORY_POSITIONS[type] ?? { x: 600, y: 400 };
+      const nodeType = ENTITY_TYPE_TO_NODE_TYPE[type] ?? 'leaf';
+      const label = nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
+
+      const newCatNode: Node = {
+        id: categoryId,
+        type: 'systemNode',
+        position: catPos,
+        data: {
+          label,
+          type: nodeType,
+          icon: CATEGORY_ICON[type] ?? 'server',
+        },
+      };
+      const centralHandles = getBestHandles({ x: 600, y: 400 }, catPos);
+      const centralToCatEdge: Edge = {
+        id: `e-central-${categoryId}`,
+        source: centralId,
+        target: categoryId,
+        sourceHandle: toSourceHandleId(centralHandles.sourceHandle),
+        targetHandle: toTargetHandleId(centralHandles.targetHandle),
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#60a5fa', strokeWidth: 2 },
+      };
+      setNodes((prev) => [...prev, newCatNode]);
+      setEdges((prev) => [...prev, centralToCatEdge]);
+      setIsAddCategoryModalOpen(false);
+    },
+    [envId],
   );
 
   const handleSaveLayout = useCallback(async () => {
@@ -331,6 +544,32 @@ export function MapPage() {
       setSaving(false);
     }
   }, [nodes, orgId, envId]);
+
+  const blocker = useBlocker(
+    useCallback(
+      ({ currentLocation, nextLocation }: { currentLocation: { pathname: string }; nextLocation: { pathname: string } }) => {
+        const onMapPage = /^\/environments\/[^/]+$/.test(currentLocation.pathname);
+        if (!onMapPage) return false;
+        return currentLocation.pathname !== nextLocation.pathname;
+      },
+      [],
+    ),
+  );
+
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    let cancelled = false;
+    handleSaveLayout()
+      .then(() => {
+        if (!cancelled && blocker.state === 'blocked') blocker.proceed();
+      })
+      .catch(() => {
+        if (!cancelled && blocker.state === 'blocked') blocker.proceed();
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [blocker.state, blocker, handleSaveLayout]);
 
   const handleConnectionCreated = useCallback(
     async (params: CreateConnectionPayload) => {
@@ -373,6 +612,9 @@ export function MapPage() {
   }));
 
   const leafNodes = getLeafNodesFromFlow(nodes);
+  const existingCategoryTypes = nodes
+    .filter((n) => typeof n.id === 'string' && n.id.startsWith('cat-'))
+    .map((n) => n.id.replace('cat-', '') as EntityType);
   const selectedLeafNode = nodes.find(
     (n) => isLeafNodeId(n.id) && n.selected,
   ) ?? null;
@@ -512,25 +754,31 @@ export function MapPage() {
   );
 
   return (
-    <div className="h-screen w-screen bg-background">
+    <div className="flex h-full min-h-0 flex-1 flex-col bg-background">
       <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-border bg-card/95 px-6 py-4 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <Link
-            to="/environments"
-            className="flex items-center gap-3 rounded-md hover:opacity-90"
-          >
+          <SidebarTrigger className="-ml-1 rounded-md hover:opacity-90" />
+          <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/20">
               <span className="text-sm font-bold text-primary-foreground">N</span>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-foreground">
-                Environment map
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                {loading ? '…' : (currentEnv?.name ?? 'Unknown')}
-              </p>
-            </div>
-          </Link>
+            <Select
+              value={loading ? '' : (envId ?? '')}
+              onValueChange={(id) => navigate(`/environments/${id}`)}
+              disabled={loading || environments.length === 0}
+            >
+              <SelectTrigger className="w-[220px] h-9 border-border bg-card">
+                <SelectValue placeholder="Select environment" />
+              </SelectTrigger>
+              <SelectContent>
+                {environments.map((env) => (
+                  <SelectItem key={env.id} value={env.id}>
+                    {env.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {currentEnv && (
@@ -600,13 +848,15 @@ export function MapPage() {
           edges={visibleEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onMove={(_event, vp) => { viewportRef.current = vp; }}
+          onMoveEnd={(_event, vp) => onViewportChange(vp)}
           onNodeContextMenu={handleNodeContextMenu}
           onPaneClick={() => setContextMenu(null)}
           nodeTypes={nodeTypes}
           fitView
           minZoom={0.3}
           maxZoom={1.5}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
+          defaultViewport={viewport ?? DEFAULT_VIEWPORT}
           proOptions={{ hideAttribution: true }}
         >
           <Background
@@ -630,7 +880,7 @@ export function MapPage() {
       )}
 
       {selectedEdgeForPositionPanel && (
-        <div className="absolute bottom-6 left-6 z-20 rounded-lg border border-border bg-card px-4 py-3 shadow-lg">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 rounded-lg border border-border bg-card px-4 py-3 shadow-lg">
           <p className="mb-2 text-xs font-medium text-muted-foreground">Connection position</p>
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2">
@@ -683,17 +933,48 @@ export function MapPage() {
         </div>
       )}
 
-      <AddNodeModal
-        isOpen={isAddNodeModalOpen}
-        onClose={() => {
-          setIsAddNodeModalOpen(false);
-          setSelectedNode(null);
-        }}
-        parentNode={selectedNode}
-        onAddNode={handleAddNode}
-        defaultSourceHandle={modalDefaultHandles.sourceHandle}
-        defaultTargetHandle={modalDefaultHandles.targetHandle}
+      <AddCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        onClose={() => setIsAddCategoryModalOpen(false)}
+        existingCategoryTypes={existingCategoryTypes}
+        onAddCategory={handleAddCategory}
       />
+      <Sheet
+        open={selectedNode !== null || editingEntity !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedNode(null);
+            setEditingEntity(null);
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="flex w-full flex-col sm:max-w-md"
+        >
+          <SheetHeader className="flex-shrink-0 border-b border-border pb-4">
+            <SheetTitle>
+              {editingEntity ? 'Edit component' : selectedNode ? 'Add component' : 'Component'}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {(selectedNode !== null || editingEntity !== null) && (
+              <AddNodeForm
+                parentNode={selectedNode}
+                editingEntity={editingEntity}
+                onClose={() => {
+                  setSelectedNode(null);
+                  setEditingEntity(null);
+                }}
+                onAddNode={handleAddNode}
+                onUpdateNode={handleUpdateNode}
+                defaultSourceHandle={nodePanelDefaultHandles.sourceHandle}
+                defaultTargetHandle={nodePanelDefaultHandles.targetHandle}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
       <AddConnectionModal
         isOpen={isConnectionModalOpen}
         onClose={() => setIsConnectionModalOpen(false)}

@@ -11,7 +11,7 @@ import {
   toTargetHandleId,
   getBestHandles,
 } from '../constants';
-import type { HandlePosition } from '../constants';
+import type { HandlePosition, EntityType } from '../constants';
 
 const CENTRAL_POS = { x: 600, y: 400 };
 import type { MapNodeData } from '../types';
@@ -31,6 +31,7 @@ export function buildGraph(
   envName: string,
   entities: ApiEntity[],
   relationships: ApiRelationship[],
+  enabledCategoryTypes: EntityType[] = [],
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -50,7 +51,11 @@ export function buildGraph(
     byType.set(e.type, list);
   }
 
-  for (const [type, group] of byType.entries()) {
+  // Categories to show = types that have entities ∪ explicitly enabled (empty) categories
+  const typesWithEntities = new Set(byType.keys());
+  const categoryTypes = new Set<string>([...typesWithEntities, ...enabledCategoryTypes]);
+
+  for (const type of categoryTypes) {
     const catId = `cat-${type}`;
     const catPos = CATEGORY_POSITIONS[type] ?? { x: 600, y: 400 };
     const nodeType = ENTITY_TYPE_TO_NODE_TYPE[type] ?? 'leaf';
@@ -79,6 +84,7 @@ export function buildGraph(
       style: { stroke: '#60a5fa', strokeWidth: 2 },
     });
 
+    const group = byType.get(type) ?? [];
     group.forEach((entity, idx) => {
       const pos = entity.metadata?.position ?? defaultLeafPosition(catPos, idx);
       const data: MapNodeData = {

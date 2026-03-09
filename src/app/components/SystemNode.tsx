@@ -1,22 +1,7 @@
 import { Handle, Position } from 'reactflow';
-import {
-  Server,
-  Database,
-  Users,
-  Activity,
-  DollarSign,
-  MapPin,
-  Cloud,
-  Cpu,
-  Globe,
-  Lock,
-  Zap,
-  BarChart3,
-  GitBranch,
-  Target,
-  Network,
-} from 'lucide-react';
+import { Network } from 'lucide-react';
 import { memo } from 'react';
+import { NODE_ICON_MAP } from '@/features/map/iconMap';
 
 type NodeType =
   | 'central'
@@ -43,23 +28,7 @@ interface SystemNodeProps {
   id: string;
 }
 
-const iconMap: Record<string, React.ReactNode> = {
-  server: <Server className="w-4 h-4" />,
-  database: <Database className="w-4 h-4" />,
-  users: <Users className="w-4 h-4" />,
-  activity: <Activity className="w-4 h-4" />,
-  dollar: <DollarSign className="w-4 h-4" />,
-  map: <MapPin className="w-4 h-4" />,
-  cloud: <Cloud className="w-4 h-4" />,
-  cpu: <Cpu className="w-4 h-4" />,
-  globe: <Globe className="w-4 h-4" />,
-  lock: <Lock className="w-4 h-4" />,
-  zap: <Zap className="w-4 h-4" />,
-  chart: <BarChart3 className="w-4 h-4" />,
-  git: <GitBranch className="w-4 h-4" />,
-  target: <Target className="w-4 h-4" />,
-  network: <Network className="w-4 h-4" />,
-};
+const iconMap = NODE_ICON_MAP;
 
 const statusColors: Record<Status, string> = {
   healthy: 'bg-green-500',
@@ -82,7 +51,7 @@ function SystemNode({ data, id }: SystemNodeProps) {
   ].includes(type);
 
   const handleClick = () => {
-    if (onNodeClick && (isCentral || isCategory)) {
+    if (onNodeClick) {
       onNodeClick(id, { label, type });
     }
   };
@@ -126,7 +95,7 @@ function SystemNode({ data, id }: SystemNodeProps) {
           rounded-2xl border
           backdrop-blur-sm
           transition-all duration-300
-          ${(isCentral || isCategory) ? 'cursor-pointer' : ''}
+          ${(isCentral || isCategory || onNodeClick) ? 'cursor-pointer' : ''}
           ${
             isCentral
               ? 'bg-gradient-to-br from-surface to-background border-blue-500/50 shadow-2xl shadow-blue-500/20 hover:border-blue-400 hover:shadow-blue-400/30'
