@@ -5,9 +5,11 @@ import {
   Database,
   DollarSign,
   ExternalLink,
+  GitBranch,
   Globe,
   KeyRound,
   LayoutGrid,
+  Cloud,
   Rocket,
   Server,
   ShieldAlert,
@@ -24,10 +26,18 @@ import {
 } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import {
   getDashboardEnvironments,
   MOCK_ACTIVITY_LOG,
   MOCK_FOOTER_STRIP,
+  MOCK_GCLOUD_BUILDS,
+  MOCK_GCLOUD_DEPLOYS,
+  MOCK_GCLOUD_LOGS,
+  MOCK_GCLOUD_SERVICES_HEALTH,
+  MOCK_GITHUB_COMMITS,
+  MOCK_GITHUB_MERGES,
+  MOCK_GITHUB_PRS,
   MOCK_KPIS,
   MOCK_PRO_TIP,
   MOCK_QUICK_ACTIONS_RAIL,
@@ -51,6 +61,22 @@ function StatusBadge({ status }: { status: string }) {
     healthy: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
     warning: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
     critical: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
+    // GitHub PR / merge
+    open: 'bg-primary/10 border-primary/30 text-primary',
+    merged: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
+    closed: 'bg-muted border-border text-muted-foreground',
+    // GCloud build / deploy
+    success: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
+    failure: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
+    failed: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
+    working: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
+    deploying: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
+    active: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
+    // Log severity
+    info: 'bg-primary/10 border-primary/30 text-primary',
+    error: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
+    degraded: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
+    unknown: 'bg-muted border-border text-muted-foreground',
   };
   return (
     <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase ${styles[status] ?? styles.healthy}`}>
@@ -322,6 +348,161 @@ export function DashboardPage() {
               ))}
             </div>
           )}
+        </section>
+
+        <section>
+          <h2 className="mb-4 text-xl font-bold">Last logs GitHub</h2>
+          <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <GitBranch className="size-5 text-muted-foreground" />
+                <CardTitle className="text-lg">Recent activity</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Tabs defaultValue="commits" className="w-full">
+                <TabsList className="mb-4 w-full justify-start rounded-xl">
+                  <TabsTrigger value="commits">Commits</TabsTrigger>
+                  <TabsTrigger value="prs">PRs</TabsTrigger>
+                  <TabsTrigger value="merges">Merges</TabsTrigger>
+                </TabsList>
+                <TabsContent value="commits" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GITHUB_COMMITS.map((c) => (
+                      <li key={c.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{c.message}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            <code className="rounded bg-muted px-1">{c.hash}</code> · {c.repo} · {c.author}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(c.created_at)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+                <TabsContent value="prs" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GITHUB_PRS.map((pr) => (
+                      <li key={pr.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">#{pr.number} {pr.title}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{pr.author}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <StatusBadge status={pr.state} />
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(pr.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+                <TabsContent value="merges" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GITHUB_MERGES.map((m) => (
+                      <li key={m.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{m.title}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {m.sourceBranch} → {m.targetBranch} · {m.author}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(m.created_at)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="mb-4 text-xl font-bold">GCloud</h2>
+          <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Cloud className="size-5 text-muted-foreground" />
+                <CardTitle className="text-lg">Build, deploy &amp; logs</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Tabs defaultValue="build" className="w-full">
+                <TabsList className="mb-4 w-full justify-start rounded-xl">
+                  <TabsTrigger value="build">Build</TabsTrigger>
+                  <TabsTrigger value="deploy">Deploy</TabsTrigger>
+                  <TabsTrigger value="logs">Logs</TabsTrigger>
+                  <TabsTrigger value="healthy">Services healthy</TabsTrigger>
+                </TabsList>
+                <TabsContent value="build" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GCLOUD_BUILDS.map((b) => (
+                      <li key={b.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-mono text-sm">{b.buildId}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{b.trigger}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {b.durationSeconds != null && (
+                            <span className="text-xs text-muted-foreground">{b.durationSeconds}s</span>
+                          )}
+                          <StatusBadge status={b.status} />
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(b.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+                <TabsContent value="deploy" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GCLOUD_DEPLOYS.map((d) => (
+                      <li key={d.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{d.serviceName}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{d.revision} · {d.region}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <StatusBadge status={d.status} />
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(d.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+                <TabsContent value="logs" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GCLOUD_LOGS.map((l) => (
+                      <li key={l.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm">{l.message}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{l.service}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <StatusBadge status={l.severity} />
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(l.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+                <TabsContent value="healthy" className="mt-0">
+                  <ul className="space-y-3">
+                    {MOCK_GCLOUD_SERVICES_HEALTH.map((s) => (
+                      <li key={s.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{s.name}</p>
+                          {s.detail != null && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">{s.detail}</p>
+                          )}
+                        </div>
+                        <StatusBadge status={s.status} />
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </section>
 
         {user?.organization_id && (

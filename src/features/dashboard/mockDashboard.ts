@@ -247,6 +247,131 @@ export const MOCK_QUICK_ACTIONS_RAIL: QuickActionItem[] = [
   { id: 'q3', label: 'Secret Rotation', iconColor: 'emerald', to: '/organization' },
 ];
 
+/** GitHub commit for dashboard "Last logs" (mock). */
+export type MockGitHubCommit = {
+  id: string;
+  hash: string;
+  message: string;
+  author: string;
+  repo: string;
+  created_at: string;
+};
+
+export const MOCK_GITHUB_COMMITS: MockGitHubCommit[] = [
+  { id: 'gh-c1', hash: 'a3f2b1c', message: 'fix: resolve race in auth middleware', author: 'alice', repo: 'nervum-api', created_at: new Date(Date.now() - 4 * 60 * 1000).toISOString() },
+  { id: 'gh-c2', hash: 'b8e4d2a', message: 'feat: add dashboard GitHub tab', author: 'bob', repo: 'nervum-ui', created_at: new Date(Date.now() - 18 * 60 * 1000).toISOString() },
+  { id: 'gh-c3', hash: 'c1a5e9f', message: 'chore: bump deps and lockfile', author: 'ci-bot', repo: 'nervum-go', created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString() },
+  { id: 'gh-c4', hash: 'd2f7c3b', message: 'docs: update integration guide', author: 'alice', repo: 'nervum-docs', created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-c5', hash: 'e9b4a1d', message: 'fix: handle empty GCloud log page', author: 'bob', repo: 'nervum-ui', created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-c6', hash: 'f3c8e2a', message: 'refactor: extract mock types to module', author: 'alice', repo: 'nervum-ui', created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+];
+
+/** GitHub PR for dashboard "Last logs" (mock). */
+export type MockGitHubPR = {
+  id: string;
+  number: number;
+  title: string;
+  state: 'open' | 'closed' | 'merged';
+  author: string;
+  created_at: string;
+};
+
+export const MOCK_GITHUB_PRS: MockGitHubPR[] = [
+  { id: 'gh-p1', number: 142, title: 'Dashboard: GitHub and GCloud sections', state: 'open', author: 'bob', created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-p2', number: 141, title: 'Fix env health card loading state', state: 'merged', author: 'alice', created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-p3', number: 140, title: 'Add Cloud Build status to dashboard', state: 'merged', author: 'ci-bot', created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-p4', number: 139, title: 'WIP: OAuth GitHub integration', state: 'open', author: 'bob', created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-p5', number: 138, title: 'Upgrade React Query to v5', state: 'closed', author: 'alice', created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+];
+
+/** GitHub merge for dashboard "Last logs" (mock). */
+export type MockGitHubMerge = {
+  id: string;
+  title: string;
+  sourceBranch: string;
+  targetBranch: string;
+  author: string;
+  created_at: string;
+};
+
+export const MOCK_GITHUB_MERGES: MockGitHubMerge[] = [
+  { id: 'gh-m1', title: 'Fix env health card loading state', sourceBranch: 'fix/health-loading', targetBranch: 'main', author: 'alice', created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-m2', title: 'Add Cloud Build status to dashboard', sourceBranch: 'feat/cloud-build', targetBranch: 'main', author: 'ci-bot', created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-m3', title: 'Merge branch feature/tabs into develop', sourceBranch: 'feature/tabs', targetBranch: 'develop', author: 'bob', created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-m4', title: 'Release v2.4.0-rc1', sourceBranch: 'release/2.4', targetBranch: 'main', author: 'alice', created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: 'gh-m5', title: 'Sync staging with main', sourceBranch: 'main', targetBranch: 'staging', author: 'ci-bot', created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+];
+
+/** GCloud build for dashboard (mock). */
+export type MockGCloudBuild = {
+  id: string;
+  buildId: string;
+  status: 'success' | 'failure' | 'working';
+  durationSeconds?: number;
+  trigger: string;
+  created_at: string;
+};
+
+export const MOCK_GCLOUD_BUILDS: MockGCloudBuild[] = [
+  { id: 'gcb-1', buildId: 'a1b2c3d4-5678', status: 'success', durationSeconds: 142, trigger: 'Push to main', created_at: new Date(Date.now() - 12 * 60 * 1000).toISOString() },
+  { id: 'gcb-2', buildId: 'e5f6g7h8-9012', status: 'success', durationSeconds: 98, trigger: 'PR #142', created_at: new Date(Date.now() - 35 * 60 * 1000).toISOString() },
+  { id: 'gcb-3', buildId: 'i9j0k1l2-3456', status: 'failure', durationSeconds: 45, trigger: 'Push to develop', created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString() },
+  { id: 'gcb-4', buildId: 'm3n4o5p6-7890', status: 'working', trigger: 'Manual', created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString() },
+  { id: 'gcb-5', buildId: 'q7r8s9t0-1234', status: 'success', durationSeconds: 201, trigger: 'Tag v2.4.0', created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+];
+
+/** GCloud deploy for dashboard (mock). */
+export type MockGCloudDeploy = {
+  id: string;
+  serviceName: string;
+  revision: string;
+  status: 'active' | 'deploying' | 'failed';
+  region: string;
+  created_at: string;
+};
+
+export const MOCK_GCLOUD_DEPLOYS: MockGCloudDeploy[] = [
+  { id: 'gcd-1', serviceName: 'nervum-api', revision: 'nervum-api-00042', status: 'active', region: 'us-central1', created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
+  { id: 'gcd-2', serviceName: 'nervum-ui', revision: 'nervum-ui-00028', status: 'active', region: 'us-central1', created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString() },
+  { id: 'gcd-3', serviceName: 'worker-export', revision: 'worker-export-00011', status: 'deploying', region: 'europe-west1', created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString() },
+  { id: 'gcd-4', serviceName: 'nervum-api', revision: 'nervum-api-00041', status: 'active', region: 'europe-west1', created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString() },
+  { id: 'gcd-5', serviceName: 'cron-cleanup', revision: 'cron-cleanup-00005', status: 'failed', region: 'us-central1', created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() },
+];
+
+/** GCloud log entry for dashboard (mock). */
+export type MockGCloudLogEntry = {
+  id: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error';
+  service: string;
+  created_at: string;
+};
+
+export const MOCK_GCLOUD_LOGS: MockGCloudLogEntry[] = [
+  { id: 'gcl-1', message: 'Request completed', severity: 'info', service: 'nervum-api', created_at: new Date(Date.now() - 1 * 60 * 1000).toISOString() },
+  { id: 'gcl-2', message: 'High memory usage (87%)', severity: 'warning', service: 'worker-export', created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
+  { id: 'gcl-3', message: 'Health check failed: timeout', severity: 'error', service: 'cron-cleanup', created_at: new Date(Date.now() - 12 * 60 * 1000).toISOString() },
+  { id: 'gcl-4', message: 'Deployment nervum-api-00042 completed', severity: 'info', service: 'cloud-run', created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
+  { id: 'gcl-5', message: 'Rate limit approaching 80%', severity: 'warning', service: 'nervum-api', created_at: new Date(Date.now() - 28 * 60 * 1000).toISOString() },
+  { id: 'gcl-6', message: 'DB connection pool exhausted', severity: 'error', service: 'nervum-api', created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString() },
+];
+
+/** GCloud service health for dashboard (mock). */
+export type MockGCloudServiceHealth = {
+  id: string;
+  name: string;
+  status: 'healthy' | 'degraded' | 'unknown';
+  detail?: string;
+};
+
+export const MOCK_GCLOUD_SERVICES_HEALTH: MockGCloudServiceHealth[] = [
+  { id: 'gch-1', name: 'nervum-api', status: 'healthy', detail: 'All instances serving' },
+  { id: 'gch-2', name: 'nervum-ui', status: 'healthy', detail: 'All instances serving' },
+  { id: 'gch-3', name: 'worker-export', status: 'degraded', detail: '1/3 instances restarting' },
+  { id: 'gch-4', name: 'cron-cleanup', status: 'unknown', detail: 'Last check failed' },
+  { id: 'gch-5', name: 'nervum-api (europe-west1)', status: 'healthy' },
+];
+
 /**
  * Returns dashboard environments: real list mapped to DashboardEnvironment, or mock.
  * When real: databases_count, queues_count, issues_count default to 0; updated_at to created_at.
