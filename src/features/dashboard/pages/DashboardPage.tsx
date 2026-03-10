@@ -133,6 +133,7 @@ export function DashboardPage() {
   const [gcloudDeploys, setGcloudDeploys] = useState<DashboardGCloudDeploy[]>(MOCK_GCLOUD_DEPLOYS);
   const [gcloudLogs, setGcloudLogs] = useState<DashboardGCloudLogEntry[]>(MOCK_GCLOUD_LOGS);
   const [gcloudServicesHealth, setGcloudServicesHealth] = useState<DashboardGCloudServiceHealth[]>(MOCK_GCLOUD_SERVICES_HEALTH);
+  const [gcloudNeedsConfig, setGcloudNeedsConfig] = useState(false);
 
   useEffect(() => {
     if (!user?.organization_id) return;
@@ -211,18 +212,46 @@ export function DashboardPage() {
   useEffect(() => {
     if (!user?.organization_id) return;
     const orgId = user.organization_id;
-    getDashboardGCloudBuilds(orgId)
-      .then(setGcloudBuilds)
-      .catch(() => setGcloudBuilds(MOCK_GCLOUD_BUILDS));
-    getDashboardGCloudDeploys(orgId)
-      .then(setGcloudDeploys)
-      .catch(() => setGcloudDeploys(MOCK_GCLOUD_DEPLOYS));
-    getDashboardGCloudLogs(orgId)
-      .then(setGcloudLogs)
-      .catch(() => setGcloudLogs(MOCK_GCLOUD_LOGS));
-    getDashboardGCloudServicesHealth(orgId)
-      .then(setGcloudServicesHealth)
-      .catch(() => setGcloudServicesHealth(MOCK_GCLOUD_SERVICES_HEALTH));
+    const needsConfigMsg = 'project_id';
+    Promise.allSettled([
+      getDashboardGCloudBuilds(orgId),
+      getDashboardGCloudDeploys(orgId),
+      getDashboardGCloudLogs(orgId),
+      getDashboardGCloudServicesHealth(orgId),
+    ]).then(([builds, deploys, logs, health]) => {
+      let needsConfig = false;
+      if (builds.status === 'fulfilled') {
+        setGcloudBuilds(builds.value);
+      } else {
+        if (builds.reason instanceof Error && builds.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        else setGcloudBuilds(MOCK_GCLOUD_BUILDS);
+      }
+      if (deploys.status === 'fulfilled') {
+        setGcloudDeploys(deploys.value);
+      } else {
+        if (deploys.reason instanceof Error && deploys.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        else setGcloudDeploys(MOCK_GCLOUD_DEPLOYS);
+      }
+      if (logs.status === 'fulfilled') {
+        setGcloudLogs(logs.value);
+      } else {
+        if (logs.reason instanceof Error && logs.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        else setGcloudLogs(MOCK_GCLOUD_LOGS);
+      }
+      if (health.status === 'fulfilled') {
+        setGcloudServicesHealth(health.value);
+      } else {
+        if (health.reason instanceof Error && health.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        else setGcloudServicesHealth(MOCK_GCLOUD_SERVICES_HEALTH);
+      }
+      setGcloudNeedsConfig(needsConfig);
+      if (needsConfig) {
+        setGcloudBuilds([]);
+        setGcloudDeploys([]);
+        setGcloudLogs([]);
+        setGcloudServicesHealth([]);
+      }
+    });
   }, [user?.organization_id]);
 
   return (
@@ -536,6 +565,16 @@ export function DashboardPage() {
 
         <section>
           <h2 className="mb-4 text-xl font-bold">GCloud</h2>
+          {gcloudNeedsConfig && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                Google Cloud is connected but not fully configured. Set your project ID to see live builds, deploys, and logs.
+              </p>
+              <Button asChild size="sm">
+                <Link to="/integrations">Configure GCloud</Link>
+              </Button>
+            </div>
+          )}
           <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
@@ -552,6 +591,11 @@ export function DashboardPage() {
                   <TabsTrigger value="healthy">Services healthy</TabsTrigger>
                 </TabsList>
                 <TabsContent value="build" className="mt-0">
+                  {gcloudNeedsConfig ? (
+                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      Configure your GCP project ID in Integrations to see builds here.
+                    </p>
+                  ) : (
                   <ul className="space-y-3">
                     {gcloudBuilds.map((b) => (
                       <li key={b.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
@@ -569,8 +613,14 @@ export function DashboardPage() {
                       </li>
                     ))}
                   </ul>
+                  )}
                 </TabsContent>
                 <TabsContent value="deploy" className="mt-0">
+                  {gcloudNeedsConfig ? (
+                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      Configure your GCP project ID in Integrations to see deploys here.
+                    </p>
+                  ) : (
                   <ul className="space-y-3">
                     {gcloudDeploys.map((d) => (
                       <li key={d.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
@@ -585,8 +635,14 @@ export function DashboardPage() {
                       </li>
                     ))}
                   </ul>
+                  )}
                 </TabsContent>
                 <TabsContent value="logs" className="mt-0">
+                  {gcloudNeedsConfig ? (
+                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      Configure your GCP project ID in Integrations to see logs here.
+                    </p>
+                  ) : (
                   <ul className="space-y-3">
                     {gcloudLogs.map((l) => (
                       <li key={l.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
@@ -601,8 +657,14 @@ export function DashboardPage() {
                       </li>
                     ))}
                   </ul>
+                  )}
                 </TabsContent>
                 <TabsContent value="healthy" className="mt-0">
+                  {gcloudNeedsConfig ? (
+                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      Configure your GCP project ID in Integrations to see service health here.
+                    </p>
+                  ) : (
                   <ul className="space-y-3">
                     {gcloudServicesHealth.map((s) => (
                       <li key={s.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
@@ -616,6 +678,7 @@ export function DashboardPage() {
                       </li>
                     ))}
                   </ul>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>

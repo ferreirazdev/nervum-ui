@@ -508,6 +508,13 @@ export function getIntegrations(organizationId: string): Promise<ApiIntegration[
   return apiFetch<ApiIntegration[]>(`/integrations?organization_id=${organizationId}`);
 }
 
+export function updateIntegrationMetadata(id: string, metadata: Record<string, string>): Promise<ApiIntegration> {
+  return apiFetch<ApiIntegration>(`/integrations/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ metadata }),
+  });
+}
+
 export function disconnectIntegration(id: string): Promise<void> {
   return apiFetch<void>(`/integrations/${id}`, { method: 'DELETE' });
 }

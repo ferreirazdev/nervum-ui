@@ -9,8 +9,9 @@ import {
   CardTitle,
 } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
 import { useAuth } from '@/features/auth';
-import { getOrganization, getIntegrations, disconnectIntegration, type ApiOrganization, type ApiIntegration } from '@/lib/api';
+import { getOrganization, getIntegrations, disconnectIntegration, updateIntegrationMetadata, type ApiOrganization, type ApiIntegration } from '@/lib/api';
 import { canEditOrganization } from '@/lib/permissions';
 
 /** Base URL for API when redirecting (e.g. OAuth connect). Empty = same origin (use proxy). */
@@ -71,6 +72,8 @@ export function IntegrationsPage() {
   const [loading, setLoading] = useState(true);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [gcloudProjectId, setGcloudProjectId] = useState('');
+  const [savingGcloudId, setSavingGcloudId] = useState<string | null>(null);
 
   const orgId = user?.organization_id;
   const canManage = orgId && (canEditOrganization(user?.role ?? '') || org?.owner_id === user?.id);
@@ -119,6 +122,11 @@ export function IntegrationsPage() {
   const connectedByProvider = (id: ConnectableId) =>
     integrations.find((i) => i.provider === id);
 
+  const gcloudConnected = connectedByProvider('gcloud');
+  useEffect(() => {
+    if (gcloudConnected) setGcloudProjectId(gcloudConnected.metadata?.project_id ?? '');
+  }, [gcloudConnected?.id, gcloudConnected?.metadata?.project_id]);
+
   const handleConnect = (provider: ConnectableId) => {
     if (!orgId || !canManage) return;
     const base = getApiBase();
@@ -139,6 +147,22 @@ export function IntegrationsPage() {
       setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to disconnect' });
     } finally {
       setDisconnectingId(null);
+    }
+  };
+
+  const handleSaveGcloudProject = async () => {
+    const connected = connectedByProvider('gcloud');
+    if (!connected || !orgId) return;
+    setSavingGcloudId(connected.id);
+    try {
+      await updateIntegrationMetadata(connected.id, { project_id: gcloudProjectId.trim() });
+      const list = await getIntegrations(orgId);
+      setIntegrations(list);
+      setMessage({ type: 'success', text: 'GCP project ID saved. Dashboard will show live data.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save project ID' });
+    } finally {
+      setSavingGcloudId(null);
     }
   };
 
@@ -194,26 +218,57 @@ export function IntegrationsPage() {
                 {connectable && showActions && (
                   <>
                     {connected ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm text-muted-foreground">
-                          Connected
-                          {connected.metadata?.project_id && (
-                            <span className="ml-1">({connected.metadata.project_id})</span>
-                          )}
-                          {connected.metadata?.owner && connected.metadata?.repo && (
-                            <span className="ml-1">
-                              ({connected.metadata.owner}/{connected.metadata.repo})
-                            </span>
-                          )}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={disconnectingId === connected.id}
-                          onClick={() => handleDisconnect(connected.id)}
-                        >
-                          {disconnectingId === connected.id ? 'Disconnecting…' : 'Disconnect'}
-                        </Button>
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            Connected
+                            {connected.metadata?.project_id && (
+                              <span className="ml-1">(project: {connected.metadata.project_id})</span>
+                            )}
+                            {connected.metadata?.owner && connected.metadata?.repo && (
+                              <span className="ml-1">
+                                ({connected.metadata.owner}/{connected.metadata.repo})
+                              </span>
+                            )}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={disconnectingId === connected.id}
+                            onClick={() => handleDisconnect(connected.id)}
+                          >
+                            {disconnectingId === connected.id ? 'Disconnecting…' : 'Disconnect'}
+                          </Button>
+                        </div>
+                        {id === 'gcloud' && (
+                          <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+                            <label htmlFor="gcloud-project-id" className="text-xs font-medium text-muted-foreground">
+                              GCP project ID
+                            </label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="gcloud-project-id"
+                                type="text"
+                                placeholder="e.g. my-gcp-project-id"
+                                value={gcloudProjectId}
+                                onChange={(e) => setGcloudProjectId(e.target.value)}
+                                className="font-mono text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                disabled={savingGcloudId === connected.id || !gcloudProjectId.trim()}
+                                onClick={handleSaveGcloudProject}
+                              >
+                                {savingGcloudId === connected.id ? 'Saving…' : 'Save project'}
+                              </Button>
+                            </div>
+                            {!connected.metadata?.project_id && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400">
+                                Project not configured – dashboard will show mock data until set.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <Button
