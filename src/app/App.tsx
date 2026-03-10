@@ -13,6 +13,7 @@ import { TeamsPage } from '@/features/teams';
 import { UsersPage } from '@/features/users';
 import { ProfilePage } from '@/features/profile';
 import { IntegrationsPage } from '@/features/integrations';
+import { RepositoriesPage } from '@/features/repositories';
 import { AcceptInvitePage } from '@/features/invitations';
 import { ChatProvider, GlobalChat } from '@/features/chat';
 import { Toaster } from '@/app/components/ui/sonner';
@@ -138,6 +139,16 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <RequireOnboardingCompleted>
               <IntegrationsPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'repositories',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <RepositoriesPage />
             </RequireOnboardingCompleted>
           </ProtectedRoute>
         ),

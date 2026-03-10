@@ -198,6 +198,100 @@ export type AcceptInvitationInput = {
   password?: string;
 };
 
+// ─── Integrations ─────────────────────────────────────────────────────────────
+
+export type ApiIntegration = {
+  id: string;
+  organization_id: string;
+  provider: 'github' | 'gcloud';
+  scopes?: string;
+  connected_at: string;
+  metadata?: Record<string, string>;
+  created_at: string;
+  updated_at: string;
+};
+
+// ─── Stored repositories (organization-tracked repos) ─────────────────────────
+
+export type ApiStoredRepository = {
+  id: string;
+  organization_id: string;
+  provider: string;
+  full_name: string;
+  created_at: string;
+};
+
+export type ApiGitHubRepo = {
+  id: number;
+  full_name: string;
+  name: string;
+  private: boolean;
+  html_url: string;
+};
+
+// ─── Dashboard (GitHub / GCloud proxy) ─────────────────────────────────────────
+// Shapes match mockDashboard.ts for drop-in replacement.
+
+export type DashboardGitHubCommit = {
+  id: string;
+  hash: string;
+  message: string;
+  author: string;
+  repo: string;
+  created_at: string;
+};
+
+export type DashboardGitHubPR = {
+  id: string;
+  number: number;
+  title: string;
+  state: 'open' | 'closed' | 'merged';
+  author: string;
+  created_at: string;
+};
+
+export type DashboardGitHubMerge = {
+  id: string;
+  title: string;
+  sourceBranch: string;
+  targetBranch: string;
+  author: string;
+  created_at: string;
+};
+
+export type DashboardGCloudBuild = {
+  id: string;
+  buildId: string;
+  status: 'success' | 'failure' | 'working';
+  durationSeconds?: number;
+  trigger: string;
+  created_at: string;
+};
+
+export type DashboardGCloudDeploy = {
+  id: string;
+  serviceName: string;
+  revision: string;
+  status: 'active' | 'deploying' | 'failed';
+  region: string;
+  created_at: string;
+};
+
+export type DashboardGCloudLogEntry = {
+  id: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error';
+  service: string;
+  created_at: string;
+};
+
+export type DashboardGCloudServiceHealth = {
+  id: string;
+  name: string;
+  status: 'healthy' | 'degraded' | 'unknown';
+  detail?: string;
+};
+
 // ─── Core fetch ──────────────────────────────────────────────────────────────
 
 type ApiError = { error: string };
@@ -406,4 +500,65 @@ export function acceptInvitation(input: AcceptInvitationInput): Promise<User> {
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+// ─── Integrations API ─────────────────────────────────────────────────────────
+
+export function getIntegrations(organizationId: string): Promise<ApiIntegration[]> {
+  return apiFetch<ApiIntegration[]>(`/integrations?organization_id=${organizationId}`);
+}
+
+export function disconnectIntegration(id: string): Promise<void> {
+  return apiFetch<void>(`/integrations/${id}`, { method: 'DELETE' });
+}
+
+// ─── Repositories API (stored + GitHub source) ─────────────────────────────────
+
+export function getStoredRepositories(organizationId: string): Promise<ApiStoredRepository[]> {
+  return apiFetch<ApiStoredRepository[]>(`/organizations/${organizationId}/repositories`);
+}
+
+export function addStoredRepository(organizationId: string, body: { full_name: string }): Promise<ApiStoredRepository> {
+  return apiFetch<ApiStoredRepository>(`/organizations/${organizationId}/repositories`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteStoredRepository(organizationId: string, repositoryId: string): Promise<void> {
+  return apiFetch<void>(`/organizations/${organizationId}/repositories/${repositoryId}`, { method: 'DELETE' });
+}
+
+export function getGitHubRepos(organizationId: string): Promise<ApiGitHubRepo[]> {
+  return apiFetch<ApiGitHubRepo[]>(`/organizations/${organizationId}/dashboard/github/repos`);
+}
+
+// ─── Dashboard API (GitHub / GCloud proxy) ─────────────────────────────────────
+
+export function getDashboardGitHubCommits(orgId: string, repo: string): Promise<DashboardGitHubCommit[]> {
+  return apiFetch<DashboardGitHubCommit[]>(`/organizations/${orgId}/dashboard/github/commits?repo=${encodeURIComponent(repo)}`);
+}
+
+export function getDashboardGitHubPRs(orgId: string, repo: string): Promise<DashboardGitHubPR[]> {
+  return apiFetch<DashboardGitHubPR[]>(`/organizations/${orgId}/dashboard/github/pulls?repo=${encodeURIComponent(repo)}`);
+}
+
+export function getDashboardGitHubMerges(orgId: string, repo: string): Promise<DashboardGitHubMerge[]> {
+  return apiFetch<DashboardGitHubMerge[]>(`/organizations/${orgId}/dashboard/github/merges?repo=${encodeURIComponent(repo)}`);
+}
+
+export function getDashboardGCloudBuilds(orgId: string): Promise<DashboardGCloudBuild[]> {
+  return apiFetch<DashboardGCloudBuild[]>(`/organizations/${orgId}/dashboard/gcloud/builds`);
+}
+
+export function getDashboardGCloudDeploys(orgId: string): Promise<DashboardGCloudDeploy[]> {
+  return apiFetch<DashboardGCloudDeploy[]>(`/organizations/${orgId}/dashboard/gcloud/deploys`);
+}
+
+export function getDashboardGCloudLogs(orgId: string): Promise<DashboardGCloudLogEntry[]> {
+  return apiFetch<DashboardGCloudLogEntry[]>(`/organizations/${orgId}/dashboard/gcloud/logs`);
+}
+
+export function getDashboardGCloudServicesHealth(orgId: string): Promise<DashboardGCloudServiceHealth[]> {
+  return apiFetch<DashboardGCloudServiceHealth[]>(`/organizations/${orgId}/dashboard/gcloud/services-health`);
 }

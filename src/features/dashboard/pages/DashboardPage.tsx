@@ -17,7 +17,21 @@ import {
   User,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth';
-import { getOrganization, listEnvironments, listTeams, getUsersByOrganization, type ApiOrganization } from '@/lib/api';
+import {
+  getOrganization,
+  listEnvironments,
+  listTeams,
+  getUsersByOrganization,
+  getStoredRepositories,
+  getDashboardGitHubCommits,
+  getDashboardGitHubPRs,
+  getDashboardGitHubMerges,
+  getDashboardGCloudBuilds,
+  getDashboardGCloudDeploys,
+  getDashboardGCloudLogs,
+  getDashboardGCloudServicesHealth,
+  type ApiOrganization,
+} from '@/lib/api';
 import {
   Card,
   CardContent,
@@ -27,6 +41,13 @@ import {
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
 import {
   getDashboardEnvironments,
   MOCK_ACTIVITY_LOG,
@@ -44,6 +65,15 @@ import {
   MOCK_TECHNICAL_DEBT,
   type DashboardEnvironment,
 } from '../mockDashboard';
+import type {
+  DashboardGitHubCommit,
+  DashboardGitHubPR,
+  DashboardGitHubMerge,
+  DashboardGCloudBuild,
+  DashboardGCloudDeploy,
+  DashboardGCloudLogEntry,
+  DashboardGCloudServiceHealth,
+} from '@/lib/api';
 
 function formatRelativeTime(iso: string): string {
   const date = new Date(iso);
@@ -88,11 +118,21 @@ function StatusBadge({ status }: { status: string }) {
 export function DashboardPage() {
   const { user } = useAuth();
   const [org, setOrg] = useState<ApiOrganization | null>(null);
+  const [storedRepos, setStoredRepos] = useState<{ id: string; full_name: string }[]>([]);
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [environments, setEnvironments] = useState<DashboardEnvironment[]>([]);
   const [teams, setTeams] = useState<{ id: string; name: string; icon: string }[]>([]);
   const [membersCount, setMembersCount] = useState<number>(0);
   const [envsLoading, setEnvsLoading] = useState(true);
   const [envsIsMock, setEnvsIsMock] = useState(false);
+
+  const [githubCommits, setGitHubCommits] = useState<DashboardGitHubCommit[]>(MOCK_GITHUB_COMMITS);
+  const [githubPRs, setGitHubPRs] = useState<DashboardGitHubPR[]>(MOCK_GITHUB_PRS);
+  const [githubMerges, setGitHubMerges] = useState<DashboardGitHubMerge[]>(MOCK_GITHUB_MERGES);
+  const [gcloudBuilds, setGcloudBuilds] = useState<DashboardGCloudBuild[]>(MOCK_GCLOUD_BUILDS);
+  const [gcloudDeploys, setGcloudDeploys] = useState<DashboardGCloudDeploy[]>(MOCK_GCLOUD_DEPLOYS);
+  const [gcloudLogs, setGcloudLogs] = useState<DashboardGCloudLogEntry[]>(MOCK_GCLOUD_LOGS);
+  const [gcloudServicesHealth, setGcloudServicesHealth] = useState<DashboardGCloudServiceHealth[]>(MOCK_GCLOUD_SERVICES_HEALTH);
 
   useEffect(() => {
     if (!user?.organization_id) return;
@@ -131,6 +171,58 @@ export function DashboardPage() {
     getUsersByOrganization(user.organization_id)
       .then((u) => setMembersCount(u.length))
       .catch(() => setMembersCount(0));
+  }, [user?.organization_id]);
+
+  useEffect(() => {
+    if (!user?.organization_id) {
+      setStoredRepos([]);
+      setSelectedRepo(null);
+      return;
+    }
+    getStoredRepositories(user.organization_id)
+      .then((list) => {
+        setStoredRepos(list.map((r) => ({ id: r.id, full_name: r.full_name })));
+        setSelectedRepo((prev) => {
+          if (list.length === 0) return null;
+          const first = list[0].full_name;
+          return prev && list.some((r) => r.full_name === prev) ? prev : first;
+        });
+      })
+      .catch(() => {
+        setStoredRepos([]);
+        setSelectedRepo(null);
+      });
+  }, [user?.organization_id]);
+
+  useEffect(() => {
+    if (!user?.organization_id || !selectedRepo) return;
+    const orgId = user.organization_id;
+    getDashboardGitHubCommits(orgId, selectedRepo)
+      .then(setGitHubCommits)
+      .catch(() => setGitHubCommits(MOCK_GITHUB_COMMITS));
+    getDashboardGitHubPRs(orgId, selectedRepo)
+      .then(setGitHubPRs)
+      .catch(() => setGitHubPRs(MOCK_GITHUB_PRS));
+    getDashboardGitHubMerges(orgId, selectedRepo)
+      .then(setGitHubMerges)
+      .catch(() => setGitHubMerges(MOCK_GITHUB_MERGES));
+  }, [user?.organization_id, selectedRepo]);
+
+  useEffect(() => {
+    if (!user?.organization_id) return;
+    const orgId = user.organization_id;
+    getDashboardGCloudBuilds(orgId)
+      .then(setGcloudBuilds)
+      .catch(() => setGcloudBuilds(MOCK_GCLOUD_BUILDS));
+    getDashboardGCloudDeploys(orgId)
+      .then(setGcloudDeploys)
+      .catch(() => setGcloudDeploys(MOCK_GCLOUD_DEPLOYS));
+    getDashboardGCloudLogs(orgId)
+      .then(setGcloudLogs)
+      .catch(() => setGcloudLogs(MOCK_GCLOUD_LOGS));
+    getDashboardGCloudServicesHealth(orgId)
+      .then(setGcloudServicesHealth)
+      .catch(() => setGcloudServicesHealth(MOCK_GCLOUD_SERVICES_HEALTH));
   }, [user?.organization_id]);
 
   return (
@@ -352,11 +444,35 @@ export function DashboardPage() {
 
         <section>
           <h2 className="mb-4 text-xl font-bold">Last logs GitHub</h2>
+          {storedRepos.length === 0 ? (
+            <Card className="rounded-2xl border-dashed border-border bg-muted/20">
+              <CardContent className="py-12 text-center">
+                <p className="text-sm text-muted-foreground">No repositories added. Add repositories to see commits, PRs, and merges here.</p>
+                <Button asChild className="mt-4" variant="secondary" size="sm">
+                  <Link to="/repositories">Add repositories</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
           <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
             <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <GitBranch className="size-5 text-muted-foreground" />
-                <CardTitle className="text-lg">Recent activity</CardTitle>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="size-5 text-muted-foreground shrink-0" />
+                  <CardTitle className="text-lg">Recent activity</CardTitle>
+                </div>
+                <Select value={selectedRepo ?? ''} onValueChange={(v) => setSelectedRepo(v || null)}>
+                  <SelectTrigger className="w-auto min-w-[180px]">
+                    <SelectValue placeholder="Select repo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {storedRepos.map((r) => (
+                      <SelectItem key={r.id} value={r.full_name}>
+                        {r.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -368,7 +484,7 @@ export function DashboardPage() {
                 </TabsList>
                 <TabsContent value="commits" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GITHUB_COMMITS.map((c) => (
+                    {githubCommits.map((c) => (
                       <li key={c.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{c.message}</p>
@@ -383,7 +499,7 @@ export function DashboardPage() {
                 </TabsContent>
                 <TabsContent value="prs" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GITHUB_PRS.map((pr) => (
+                    {githubPRs.map((pr) => (
                       <li key={pr.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">#{pr.number} {pr.title}</p>
@@ -399,7 +515,7 @@ export function DashboardPage() {
                 </TabsContent>
                 <TabsContent value="merges" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GITHUB_MERGES.map((m) => (
+                    {githubMerges.map((m) => (
                       <li key={m.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{m.title}</p>
@@ -415,6 +531,7 @@ export function DashboardPage() {
               </Tabs>
             </CardContent>
           </Card>
+          )}
         </section>
 
         <section>
@@ -436,7 +553,7 @@ export function DashboardPage() {
                 </TabsList>
                 <TabsContent value="build" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GCLOUD_BUILDS.map((b) => (
+                    {gcloudBuilds.map((b) => (
                       <li key={b.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-mono text-sm">{b.buildId}</p>
@@ -455,7 +572,7 @@ export function DashboardPage() {
                 </TabsContent>
                 <TabsContent value="deploy" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GCLOUD_DEPLOYS.map((d) => (
+                    {gcloudDeploys.map((d) => (
                       <li key={d.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium">{d.serviceName}</p>
@@ -471,7 +588,7 @@ export function DashboardPage() {
                 </TabsContent>
                 <TabsContent value="logs" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GCLOUD_LOGS.map((l) => (
+                    {gcloudLogs.map((l) => (
                       <li key={l.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm">{l.message}</p>
@@ -487,7 +604,7 @@ export function DashboardPage() {
                 </TabsContent>
                 <TabsContent value="healthy" className="mt-0">
                   <ul className="space-y-3">
-                    {MOCK_GCLOUD_SERVICES_HEALTH.map((s) => (
+                    {gcloudServicesHealth.map((s) => (
                       <li key={s.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium">{s.name}</p>

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { LayoutDashboard, Building2, Map, User, UsersRound, Users, Plug } from 'lucide-react';
+import { LayoutDashboard, Building2, Map, User, UsersRound, Users, Plug, BookMarked } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import {
   Sidebar,
@@ -22,6 +22,7 @@ const DASHBOARD_ROUTES = [
   { path: '/environments', label: 'Environments', icon: Map },
   { path: '/users', label: 'User management', icon: Users },
   { path: '/integrations', label: 'Integrations', icon: Plug },
+  { path: '/repositories', label: 'Repositories', icon: BookMarked },
 ] as const;
 
 function getVisibleRoutes(role: string) {
