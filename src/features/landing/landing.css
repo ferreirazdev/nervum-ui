@@ -1,0 +1,48 @@
+/* Landing page – retro/terminal utilities. Scoped under .landing-page. Uses theme vars only. */
+
+.landing-page {
+  --landing-grid-opacity: 0.03;
+  --font-mono-landing: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Mono font for headings/labels (JetBrains Mono loaded in index.html) */
+.landing-page .font-mono-landing {
+  font-family: var(--font-mono-landing);
+}
+
+/* Page-level grid background (theme-aware) */
+.landing-page.landing-grid-bg {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, var(--landing-grid-opacity)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, var(--landing-grid-opacity)) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.dark .landing-page.landing-grid-bg {
+  --landing-grid-opacity: 0.03;
+}
+
+/* Pixel-dots texture overlay */
+.landing-page .landing-pixel-dots {
+  background-image: radial-gradient(var(--primary) 1px, transparent 0);
+  background-size: 10px 10px;
+  opacity: 0.15;
+}
+
+/* Retro border: solid border + offset shadow */
+.landing-page .landing-retro-border {
+  border: 1px solid var(--border);
+  box-shadow: 4px 4px 0 var(--background);
+}
+
+/* Button pixel shadow (primary CTA); active compresses shadow */
+.landing-page .landing-btn-pixel {
+  box-shadow: 3px 3px 0 var(--border);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.landing-page .landing-btn-pixel:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--border);
+}

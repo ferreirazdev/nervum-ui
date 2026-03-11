@@ -373,8 +373,8 @@ export const MOCK_GCLOUD_SERVICES_HEALTH: MockGCloudServiceHealth[] = [
 ];
 
 /**
- * Returns dashboard environments: real list mapped to DashboardEnvironment, or mock.
- * When real: databases_count, queues_count, issues_count default to 0; updated_at to created_at.
+ * Returns dashboard environments: real list mapped to DashboardEnvironment.
+ * When real list is null or empty, returns empty array (no mock data).
  */
 export function getDashboardEnvironments(realList: ApiEnvironment[] | null): {
   environments: DashboardEnvironment[];
@@ -390,5 +390,5 @@ export function getDashboardEnvironments(realList: ApiEnvironment[] | null): {
     }));
     return { environments, isMock: false };
   }
-  return { environments: MOCK_DASHBOARD_ENVIRONMENTS, isMock: true };
+  return { environments: [], isMock: false };
 }

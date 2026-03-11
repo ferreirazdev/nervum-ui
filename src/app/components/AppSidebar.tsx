@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { LayoutDashboard, Building2, Map, User, UsersRound, Users, Plug, BookMarked } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import {
@@ -6,11 +6,16 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
+  SidebarFooterBlock,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarCollapsibleSection,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/app/components/ui/sidebar';
 import { AppLogo } from '@/app/components/AppLogo';
 import { canViewOrganization, canListOrgMembers } from '@/lib/permissions';
@@ -35,6 +40,7 @@ function getVisibleRoutes(role: string) {
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   return (
@@ -48,9 +54,9 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="px-4 pt-6">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {(user ? getVisibleRoutes(user.role) : getVisibleRoutes('member')).map(
                 ({ path, label, icon: Icon }) => (
                   <SidebarMenuItem key={path}>
@@ -70,18 +76,46 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <SidebarCollapsibleSection label="Settings" className="mt-6">
+          <SidebarMenu className="space-y-1">
+            <SidebarMenuItem>
+              <SidebarMenuSubButton
+                asChild
+                isActive={location.pathname === '/repositories'}
+              >
+                <Link to="/repositories">Repositories</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuSubButton
+                asChild
+                isActive={location.pathname === '/integrations'}
+              >
+                <Link to="/integrations">Integrations</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarCollapsibleSection>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={location.pathname === '/profile'} tooltip="Profile">
-              <Link to="/profile">
-                <User className="size-4" />
-                <span>Profile</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="flex flex-col gap-0 p-0">
+        <div className="flex flex-col gap-2 p-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={location.pathname === '/profile'} tooltip="Profile">
+                <Link to="/profile">
+                  <User className="size-4" />
+                  <span>Profile</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
+        <SidebarFooterBlock
+          title="Per repository"
+          description="Set custom configurations for each repository (override global defaults)."
+          actionLabel="Add repository configuration"
+          onAction={() => navigate('/repositories')}
+        />
       </SidebarFooter>
     </Sidebar>
   );

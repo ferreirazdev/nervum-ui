@@ -20,7 +20,6 @@ import {
 } from '@/app/components/ui/form';
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '../context';
-import { getOnboardingCompleted } from '@/lib/onboarding';
 import { AppLogo } from '@/app/components/AppLogo';
 import { MapPageDemo } from '@/features/map';
 
@@ -67,8 +66,8 @@ export function RegisterPage() {
   async function onSubmit(values: RegisterFormValues) {
     setError(null);
     try {
-      await register(values.name, values.email, values.password);
-      navigate(getOnboardingCompleted() ? '/dashboard' : '/onboarding');
+      const user = await register(values.name, values.email, values.password);
+      navigate(user.onboarding ? '/dashboard' : '/onboarding');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Registration failed');
     }

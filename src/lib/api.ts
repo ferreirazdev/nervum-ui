@@ -6,6 +6,7 @@ export type User = {
   name: string;
   role: string;
   organization_id?: string;
+  onboarding?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -14,6 +15,7 @@ export type UpdateUserInput = {
   name?: string;
   organization_id?: string;
   role?: 'admin' | 'manager' | 'member';
+  onboarding?: boolean;
 };
 
 // ─── Organizations ───────────────────────────────────────────────────────────

@@ -12,17 +12,8 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '@/features/auth';
 import { getOrganization, getIntegrations, disconnectIntegration, updateIntegrationMetadata, type ApiOrganization, type ApiIntegration } from '@/lib/api';
+import { getIntegrationConnectUrl } from '@/lib/integrations';
 import { canEditOrganization } from '@/lib/permissions';
-
-/** Base URL for API when redirecting (e.g. OAuth connect). Empty = same origin (use proxy). */
-const getApiBase = (): string => {
-  try {
-    const env = (import.meta as unknown as { env?: Record<string, string> }).env;
-    return env?.VITE_API_BASE_URL ?? '';
-  } catch {
-    return '';
-  }
-};
 
 /** Integrations that support Connect (GitHub, GCloud). Others show "Coming soon". */
 const INTEGRATIONS = [
@@ -73,6 +64,7 @@ export function IntegrationsPage() {
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [gcloudProjectId, setGcloudProjectId] = useState('');
+  const [gcloudRegion, setGcloudRegion] = useState('us-central1');
   const [savingGcloudId, setSavingGcloudId] = useState<string | null>(null);
 
   const orgId = user?.organization_id;
@@ -124,14 +116,15 @@ export function IntegrationsPage() {
 
   const gcloudConnected = connectedByProvider('gcloud');
   useEffect(() => {
-    if (gcloudConnected) setGcloudProjectId(gcloudConnected.metadata?.project_id ?? '');
-  }, [gcloudConnected?.id, gcloudConnected?.metadata?.project_id]);
+    if (gcloudConnected) {
+      setGcloudProjectId(gcloudConnected.metadata?.project_id ?? '');
+      setGcloudRegion(gcloudConnected.metadata?.region ?? 'us-central1');
+    }
+  }, [gcloudConnected?.id, gcloudConnected?.metadata?.project_id, gcloudConnected?.metadata?.region]);
 
   const handleConnect = (provider: ConnectableId) => {
     if (!orgId || !canManage) return;
-    const base = getApiBase();
-    const path = `/integrations/${provider}/connect?organization_id=${orgId}`;
-    window.location.href = base ? `${base}${path}` : `/api/v1${path}`;
+    window.location.href = getIntegrationConnectUrl(provider, orgId);
   };
 
   const handleDisconnect = async (integrationId: string) => {
@@ -155,12 +148,15 @@ export function IntegrationsPage() {
     if (!connected || !orgId) return;
     setSavingGcloudId(connected.id);
     try {
-      await updateIntegrationMetadata(connected.id, { project_id: gcloudProjectId.trim() });
+      await updateIntegrationMetadata(connected.id, {
+        project_id: gcloudProjectId.trim(),
+        region: gcloudRegion.trim() || 'us-central1',
+      });
       const list = await getIntegrations(orgId);
       setIntegrations(list);
-      setMessage({ type: 'success', text: 'GCP project ID saved. Dashboard will show live data.' });
+      setMessage({ type: 'success', text: 'GCP project and region saved. Dashboard will show live data.' });
     } catch (e) {
-      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save project ID' });
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save configuration' });
     } finally {
       setSavingGcloudId(null);
     }
@@ -259,9 +255,20 @@ export function IntegrationsPage() {
                                 disabled={savingGcloudId === connected.id || !gcloudProjectId.trim()}
                                 onClick={handleSaveGcloudProject}
                               >
-                                {savingGcloudId === connected.id ? 'Saving…' : 'Save project'}
+                                {savingGcloudId === connected.id ? 'Saving…' : 'Save'}
                               </Button>
                             </div>
+                            <label htmlFor="gcloud-region" className="mt-2 block text-xs font-medium text-muted-foreground">
+                              Cloud Run region
+                            </label>
+                            <Input
+                              id="gcloud-region"
+                              type="text"
+                              placeholder="us-central1"
+                              value={gcloudRegion}
+                              onChange={(e) => setGcloudRegion(e.target.value)}
+                              className="font-mono text-sm"
+                            />
                             {!connected.metadata?.project_id && (
                               <p className="text-xs text-amber-600 dark:text-amber-400">
                                 Project not configured – dashboard will show mock data until set.

@@ -17,7 +17,7 @@ import { RepositoriesPage } from '@/features/repositories';
 import { AcceptInvitePage } from '@/features/invitations';
 import { ChatProvider, GlobalChat } from '@/features/chat';
 import { Toaster } from '@/app/components/ui/sonner';
-import { getOnboardingCompleted, getMemberOnboardingCompleted } from '@/lib/onboarding';
+import { getMemberOnboardingCompleted } from '@/lib/onboarding';
 import { getOrganization } from '@/lib/api';
 import { canViewOrganization } from '@/lib/permissions';
 
@@ -59,14 +59,13 @@ function RequireOnboardingCompleted({ children }: { children: React.ReactNode })
   if (location.pathname === '/onboarding' || location.pathname === '/member-onboarding') return <>{children}</>;
 
   if (!user.organization_id) {
-    if (!getOnboardingCompleted()) return <Navigate to="/onboarding" replace />;
-    return <>{children}</>;
+    return <Navigate to="/onboarding" replace />;
   }
 
   if (orgLoading) return null;
   const isOwner = org?.owner_id === user.id;
   if (isOwner) {
-    if (!getOnboardingCompleted()) return <Navigate to="/onboarding" replace />;
+    if (!user.onboarding) return <Navigate to="/onboarding" replace />;
   } else {
     if (!getMemberOnboardingCompleted()) return <Navigate to="/member-onboarding" replace />;
   }

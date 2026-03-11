@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
-import { PanelLeftIcon } from "lucide-react";
+import { PanelLeftIcon, ChevronDown, Plus } from "lucide-react";
 
 import { useIsMobile } from "./use-mobile";
 import { cn } from "./utils";
@@ -354,6 +354,51 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+function SidebarFooterBlock({
+  title,
+  description,
+  actionLabel = "Add",
+  onAction,
+  className,
+  ...props
+}: React.ComponentProps<"div"> & {
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div
+      data-slot="sidebar-footer-block"
+      data-sidebar="footer-block"
+      className={cn(
+        "flex items-start justify-between gap-4 border-t border-sidebar-border p-6",
+        className,
+      )}
+      {...props}
+    >
+      <div className="min-w-0 max-w-[180px]">
+        <h3 className="mb-1 font-bold text-[15px] text-sidebar-foreground">
+          {title}
+        </h3>
+        <p className="text-[12px] leading-relaxed text-sidebar-muted">
+          {description}
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={actionLabel}
+        onClick={onAction}
+        className="size-10 shrink-0 rounded-xl bg-sidebar-accent-strong text-sidebar-foreground shadow-lg transition-colors hover:bg-indigo-600 hover:text-white"
+      >
+        <Plus className="size-5" />
+      </Button>
+    </div>
+  );
+}
+
 function SidebarSeparator({
   className,
   ...props
@@ -374,7 +419,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "sidebar-scroll flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
         className,
       )}
       {...props}
@@ -451,6 +496,56 @@ function SidebarGroupContent({
   );
 }
 
+function SidebarCollapsibleSection({
+  defaultOpen = true,
+  label,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"section"> & {
+  defaultOpen?: boolean;
+  label: React.ReactNode;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+
+  return (
+    <section
+      data-slot="sidebar-collapsible"
+      data-sidebar="collapsible-section"
+      className={cn("mt-6 px-4 first:mt-0", className)}
+      {...props}
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className={cn(
+          "flex w-full items-center justify-between gap-3 rounded-xl bg-sidebar-accent px-4 py-3 transition-[transform,opacity] hover:opacity-90",
+          "focus-visible:ring-2 focus-visible:ring-sidebar-ring outline-hidden",
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <ChevronDown
+            className={cn("size-4 shrink-0 text-sidebar-foreground transition-transform", !open && "-rotate-90")}
+            aria-hidden
+          />
+          <span className="font-bold text-sm tracking-wide text-sidebar-foreground">
+            {label}
+          </span>
+        </div>
+      </button>
+      <div
+        className={cn(
+          "relative ml-4 mt-4 max-h-[450px] overflow-y-auto pl-4 sidebar-nested-line sidebar-scroll space-y-1",
+          !open && "hidden",
+        )}
+      >
+        {children}
+      </div>
+    </section>
+  );
+}
+
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -474,18 +569,18 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md px-4 py-2 text-left text-[15px] font-semibold outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 text-sidebar-muted data-[active=true]:bg-sidebar-accent data-[active=true]:font-bold data-[active=true]:text-sidebar-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        default: "hover:bg-sidebar-accent hover:text-sidebar-foreground",
         outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-8 text-sm",
+        default: "h-8 text-[15px]",
         sm: "h-7 text-xs",
-        lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+        lg: "h-12 text-[15px] group-data-[collapsible=icon]:p-0!",
       },
     },
     defaultVariants: {
@@ -578,20 +673,28 @@ function SidebarMenuAction({
 }
 
 function SidebarMenuBadge({
+  variant = "default",
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & {
+  variant?: "default" | "beta";
+}) {
   return (
     <div
       data-slot="sidebar-menu-badge"
       data-sidebar="menu-badge"
+      data-variant={variant}
       className={cn(
-        "text-sidebar-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none",
+        "pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none",
         "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
         "peer-data-[size=sm]/menu-button:top-1",
         "peer-data-[size=default]/menu-button:top-1.5",
         "peer-data-[size=lg]/menu-button:top-2.5",
         "group-data-[collapsible=icon]:hidden",
+        variant === "default" &&
+          "text-sidebar-foreground",
+        variant === "beta" &&
+          "rounded-full bg-sidebar-beta-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sidebar-beta-text",
         className,
       )}
       {...props}
@@ -643,7 +746,7 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
-        "border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5",
+        "sidebar-nested-line mx-0 ml-4 flex min-w-0 flex-col gap-1 pl-4 py-0.5",
         "group-data-[collapsible=icon]:hidden",
         className,
       )}
@@ -702,6 +805,7 @@ export {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarFooterBlock,
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,
@@ -709,6 +813,7 @@ export {
   SidebarHeader,
   SidebarInput,
   SidebarInset,
+  SidebarCollapsibleSection,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuBadge,

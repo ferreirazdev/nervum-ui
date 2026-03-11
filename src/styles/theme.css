@@ -11,7 +11,7 @@
   --card-foreground: #09090b;
   --popover: var(--surface);
   --popover-foreground: #09090b;
-  --primary: #3b82f6;
+  --primary: #9A6EF5;
   --primary-foreground: #ffffff;
   --secondary: #f4f4f5;
   --secondary-foreground: #09090b;
@@ -25,31 +25,46 @@
   --input: #e4e4e7;
   --input-background: #ffffff;
   --switch-background: #d4d4d8;
-  --ring: #3b82f6;
+  --ring: #9A6EF5;
   --overlay: rgba(0, 0, 0, 0.5);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --radius: 0.625rem;
+  /* Nervum palette (primary purple, secondary blue, accent cyans) */
+  --nervum-primary-purple: #9A6EF5;
+  --nervum-secondary-blue: #67A0EF;
+  --nervum-accent-cyan: #8DDBF8;
+  --nervum-accent-cyan-bright: #67D5F9;
+  --nervum-primary-purple-muted: rgba(154, 110, 245, 0.2);
+  --nervum-secondary-blue-muted: rgba(103, 160, 239, 0.2);
+  --nervum-accent-cyan-muted: rgba(141, 219, 248, 0.2);
   /* Nervum map accents (for gradients, glows) */
-  --nervum-blue: #3b82f6;
-  --nervum-blue-muted: rgba(59, 130, 246, 0.2);
-  --nervum-purple: #a855f7;
-  --nervum-purple-muted: rgba(168, 85, 247, 0.2);
+  --nervum-blue: #67A0EF;
+  --nervum-blue-muted: rgba(103, 160, 239, 0.2);
+  --nervum-purple: #9A6EF5;
+  --nervum-purple-muted: rgba(154, 110, 245, 0.2);
+  --nervum-cyan: #8DDBF8;
+  --nervum-cyan-bright: #67D5F9;
   --nervum-green: #22c55e;
   --nervum-green-muted: rgba(34, 197, 94, 0.1);
+  --gradient-primary: linear-gradient(135deg, #9A6EF5 0%, #67A0EF 45%, #8DDBF8 85%, #67D5F9 100%);
   --nervum-surface: var(--surface);
   --nervum-surface-elevated: #f4f4f5;
   --sidebar: var(--surface);
   --sidebar-foreground: #09090b;
-  --sidebar-primary: #3b82f6;
+  --sidebar-primary: #9A6EF5;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f4f4f5;
   --sidebar-accent-foreground: #09090b;
   --sidebar-border: #e4e4e7;
-  --sidebar-ring: #3b82f6;
-  --chart-1: #3b82f6;
-  --chart-2: #a855f7;
-  --chart-3: #22c55e;
+  --sidebar-ring: #9A6EF5;
+  --sidebar-muted: var(--muted-foreground);
+  --sidebar-accent-strong: var(--sidebar-accent);
+  --sidebar-beta-bg: var(--sidebar-accent);
+  --sidebar-beta-text: var(--sidebar-primary);
+  --chart-1: #9A6EF5;
+  --chart-2: #67A0EF;
+  --chart-3: #8DDBF8;
   --chart-4: #eab308;
   --chart-5: #71717a;
 }
@@ -57,16 +72,16 @@
 .dark {
   /*
    * Dark theme (when .dark is on html).
-   * Dark 1 (background): page/canvas. Dark 2 (surface): cards, sidebar, popover. Muted: inputs, hover.
+   * Layout/body: #141414 (dark). Sidebar, main content, and page components (cards/surface): #171720.
    */
-  --background: #050508;
+  --background: #101019;
   --foreground: #fafafa;
-  --surface: #141414;
+  --surface: #181825;
   --card: var(--surface);
   --card-foreground: #fafafa;
   --popover: var(--surface);
   --popover-foreground: #fafafa;
-  --primary: #3b82f6;
+  --primary: #9A6EF5;
   --primary-foreground: #ffffff;
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
@@ -80,18 +95,28 @@
   --input: #27272a;
   --input-background: #18181b;
   --switch-background: #3f3f46;
-  --ring: #3b82f6;
+  --ring: #9A6EF5;
   --overlay: rgba(5, 5, 8, 0.7);
   --nervum-surface: var(--surface);
   --nervum-surface-elevated: #18181b;
   --sidebar: var(--surface);
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #3b82f6;
+  --sidebar-primary: #9A6EF5;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #27272a;
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #27272a;
-  --sidebar-ring: #3b82f6;
+  --sidebar-ring: #9A6EF5;
+  /* Developer-tool style sidebar (reference palette, ~10% darker) */
+  --sidebar: #171720;
+  --sidebar-foreground: #d1d1e0;
+  --sidebar-accent: #2a2a3c;
+  --sidebar-accent-foreground: #d1d1e0;
+  --sidebar-border: #2a2a3c;
+  --sidebar-muted: #8a8aa3;
+  --sidebar-accent-strong: #3e3e5c;
+  --sidebar-beta-bg: #2b2b4d;
+  --sidebar-beta-text: #b3b3ff;
 }
 
 @theme inline {
@@ -135,6 +160,10 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-accent-strong: var(--sidebar-accent-strong);
+  --color-sidebar-beta-bg: var(--sidebar-beta-bg);
+  --color-sidebar-beta-text: var(--sidebar-beta-text);
 }
 
 @layer base {
@@ -193,14 +222,23 @@
   }
 }
 
+/* Reusable gradient (purple → blue → cyan) */
+.bg-gradient-primary {
+  background-image: var(--gradient-primary);
+  background-color: var(--primary);
+}
+.bg-gradient-primary:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
 /* Auth layout (login/register left column) – match reference screenshot */
 .auth-left {
   --auth-bg: #0f0f0f;
   --auth-input-bg: #1e1e1e;
   --auth-input-border: #404040;
   --auth-muted: #a0a0a0;
-  --auth-primary-btn-bg: #f5f5f5;
-  --auth-primary-btn-text: #0a0a0a;
+  --auth-primary-btn-bg: var(--gradient-primary);
+  --auth-primary-btn-text: #ffffff;
   --auth-card-border: #262626;
 }
 .auth-left {
@@ -236,10 +274,11 @@
 }
 .auth-left [data-slot="card"] button[type="submit"] {
   background: var(--auth-primary-btn-bg);
+  background-color: var(--primary);
   color: var(--auth-primary-btn-text);
 }
 .auth-left [data-slot="card"] button[type="submit"]:hover:not(:disabled) {
-  background: #e5e5e5;
+  filter: brightness(0.95);
 }
 .auth-left .auth-separator-line {
   border-color: var(--auth-input-border);
@@ -264,4 +303,34 @@
 }
 .auth-left .auth-footer-link:hover {
   color: #e5e5e5;
+}
+
+/* Sidebar: custom scrollbar and nested guide line (developer-tool style) */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-accent-strong) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--sidebar-accent-strong);
+  border-radius: 10px;
+}
+
+.sidebar-nested-line {
+  position: relative;
+}
+.sidebar-nested-line::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--sidebar-border);
+  pointer-events: none;
 }
