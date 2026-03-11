@@ -240,8 +240,9 @@ export function DashboardPage() {
   }, [user?.organization_id]);
 
   return (
-    <div className="flex gap-8 px-4 sm:px-20">
-      <div className="flex-1 min-w-0 space-y-8">
+    <div className="grid grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:gap-10">
+      {/* Left column: title, environments, teams & users */}
+      <div className="min-w-0 space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             System-at-a-glance
@@ -362,6 +363,57 @@ export function DashboardPage() {
           )}
         </section>
 
+        {user?.organization_id && (
+          <section>
+            <h2 className="mb-4 text-xl font-bold">Teams & Users</h2>
+            <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <UsersRound className="size-5 text-muted-foreground" />
+                      <h3 className="text-sm font-semibold">Teams</h3>
+                    </div>
+                    {teams.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No teams yet.</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {teams.slice(0, 4).map((t) => (
+                          <li key={t.id} className="flex items-center gap-2 text-sm">
+                            <span className={t.icon ? 'text-base' : ''}>{t.icon || '👥'}</span>
+                            <span className="font-medium text-foreground">{t.name}</span>
+                          </li>
+                        ))}
+                        {teams.length > 4 && (
+                          <li className="text-xs text-muted-foreground">+{teams.length - 4} more</li>
+                        )}
+                      </ul>
+                    )}
+                    <Button asChild variant="outline" size="sm" className="mt-3">
+                      <Link to="/teams">Manage teams</Link>
+                    </Button>
+                  </div>
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <User className="size-5 text-muted-foreground" />
+                      <h3 className="text-sm font-semibold">Members</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {membersCount} {membersCount === 1 ? 'member' : 'members'} in this organization
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="mt-3">
+                      <Link to="/organization">Manage members</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+      </div>
+
+      {/* Right column: GitHub and GCloud */}
+      <div className="min-w-0 space-y-8">
         <section>
           <h2 className="mb-4 text-xl font-bold">Last logs GitHub</h2>
           {storedRepos.length === 0 ? (
@@ -609,55 +661,6 @@ export function DashboardPage() {
             </CardContent>
           </Card>
         </section>
-
-        {user?.organization_id && (
-          <section>
-            <h2 className="mb-4 text-xl font-bold">Teams & Users</h2>
-            <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <UsersRound className="size-5 text-muted-foreground" />
-                      <h3 className="text-sm font-semibold">Teams</h3>
-                    </div>
-                    {teams.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No teams yet.</p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {teams.slice(0, 4).map((t) => (
-                          <li key={t.id} className="flex items-center gap-2 text-sm">
-                            <span className={t.icon ? 'text-base' : ''}>{t.icon || '👥'}</span>
-                            <span className="font-medium text-foreground">{t.name}</span>
-                          </li>
-                        ))}
-                        {teams.length > 4 && (
-                          <li className="text-xs text-muted-foreground">+{teams.length - 4} more</li>
-                        )}
-                      </ul>
-                    )}
-                    <Button asChild variant="outline" size="sm" className="mt-3">
-                      <Link to="/teams">Manage teams</Link>
-                    </Button>
-                  </div>
-                  <div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <User className="size-5 text-muted-foreground" />
-                      <h3 className="text-sm font-semibold">Members</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {membersCount} {membersCount === 1 ? 'member' : 'members'} in this organization
-                    </p>
-                    <Button asChild variant="outline" size="sm" className="mt-3">
-                      <Link to="/organization">Manage members</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-
       </div>
     </div>
   );
