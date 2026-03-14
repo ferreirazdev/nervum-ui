@@ -94,7 +94,15 @@ export function buildGraph(
         status: entity.status as MapNodeData['status'],
         metadata: entity.metadata?.display_metadata,
         _entityType: entity.type,
-        _entityMeta: entity.metadata,
+        _entityMeta: {
+          ...entity.metadata,
+          ...(entity.health_check_url != null && {
+            health_check_url: entity.health_check_url,
+            health_check_method: entity.health_check_method,
+            health_check_headers: entity.health_check_headers,
+            health_check_expected_status: entity.health_check_expected_status,
+          }),
+        },
         _orgId: entity.organization_id,
         _envId: entity.environment_id,
       };

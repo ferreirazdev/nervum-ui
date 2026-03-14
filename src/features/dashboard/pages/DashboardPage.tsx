@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import {
   AlertTriangle,
+  Bug,
   Database,
   DollarSign,
   ExternalLink,
@@ -28,6 +29,9 @@ import {
   getDashboardGCloudDeploys,
   getDashboardGCloudLogs,
   getDashboardGCloudServicesHealth,
+  getDashboardSentryIssues,
+  getDashboardSentryStats,
+  getDashboardSentryReleases,
   type ApiOrganization,
 } from '@/lib/api';
 import {
@@ -58,6 +62,9 @@ import type {
   DashboardGCloudDeploy,
   DashboardGCloudLogEntry,
   DashboardGCloudServiceHealth,
+  DashboardSentryIssue,
+  DashboardSentryStats,
+  DashboardSentryRelease,
 } from '@/lib/api';
 
 function formatRelativeTime(iso: string): string {
@@ -119,6 +126,11 @@ export function DashboardPage() {
   const [gcloudLogs, setGcloudLogs] = useState<DashboardGCloudLogEntry[]>([]);
   const [gcloudServicesHealth, setGcloudServicesHealth] = useState<DashboardGCloudServiceHealth[]>([]);
   const [gcloudNeedsConfig, setGcloudNeedsConfig] = useState(false);
+
+  const [sentryIssues, setSentryIssues] = useState<DashboardSentryIssue[]>([]);
+  const [sentryStats, setSentryStats] = useState<DashboardSentryStats | null>(null);
+  const [sentryReleases, setSentryReleases] = useState<DashboardSentryRelease[]>([]);
+  const [sentryNeedsConfig, setSentryNeedsConfig] = useState(false);
 
   useEffect(() => {
     if (!user?.organization_id) return;
@@ -193,6 +205,25 @@ export function DashboardPage() {
       .then(setGitHubMerges)
       .catch(() => setGitHubMerges([]));
   }, [user?.organization_id, selectedRepo]);
+
+  useEffect(() => {
+    if (!user?.organization_id) return;
+    const orgId = user.organization_id;
+    Promise.allSettled([
+      getDashboardSentryIssues(orgId),
+      getDashboardSentryStats(orgId),
+      getDashboardSentryReleases(orgId),
+    ]).then(([issues, stats, releases]) => {
+      let notConnected = false;
+      if (issues.status === 'fulfilled') setSentryIssues(issues.value);
+      else notConnected = true;
+      if (stats.status === 'fulfilled') setSentryStats(stats.value);
+      else notConnected = true;
+      if (releases.status === 'fulfilled') setSentryReleases(releases.value);
+      else notConnected = true;
+      setSentryNeedsConfig(notConnected);
+    });
+  }, [user?.organization_id]);
 
   useEffect(() => {
     if (!user?.organization_id) return;
@@ -660,6 +691,110 @@ export function DashboardPage() {
               </Tabs>
             </CardContent>
           </Card>
+        </section>
+        <section>
+          <h2 className="mb-4 text-xl font-bold">Sentry</h2>
+          {sentryNeedsConfig ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                Sentry is not connected. Add your Auth Token to see errors, stats, and releases here.
+              </p>
+              <Button asChild size="sm">
+                <Link to="/integrations">Connect Sentry</Link>
+              </Button>
+            </div>
+          ) : (
+            <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Bug className="size-5 text-muted-foreground" />
+                  <CardTitle className="text-lg">Error tracking</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Tabs defaultValue="issues" className="w-full">
+                  <TabsList className="mb-4 w-full justify-start rounded-xl">
+                    <TabsTrigger value="issues">Issues</TabsTrigger>
+                    <TabsTrigger value="stats">Stats</TabsTrigger>
+                    <TabsTrigger value="releases">Releases</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="issues" className="mt-0">
+                    {sentryIssues.length === 0 ? (
+                      <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                        No unresolved issues.
+                      </p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {sentryIssues.map((issue) => (
+                          <li key={issue.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">{issue.title}</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">{issue.project} · {issue.count} events</p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <StatusBadge status={issue.level} />
+                              <span className="text-xs text-muted-foreground">{formatRelativeTime(issue.last_seen)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="stats" className="mt-0">
+                    {sentryStats ? (
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="rounded-xl bg-muted/50 p-4 text-center">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Issues</p>
+                          <p className="mt-1 text-2xl font-bold">{sentryStats.total_issues}</p>
+                        </div>
+                        <div className="rounded-xl bg-muted/50 p-4 text-center">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Unresolved</p>
+                          <p className="mt-1 text-2xl font-bold text-red-500">{sentryStats.unresolved_issues}</p>
+                        </div>
+                        <div className="rounded-xl bg-muted/50 p-4 text-center">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Projects</p>
+                          <p className="mt-1 text-2xl font-bold">{sentryStats.project_count}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                        No stats available.
+                      </p>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="releases" className="mt-0">
+                    {sentryReleases.length === 0 ? (
+                      <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                        No releases to show.
+                      </p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {sentryReleases.map((r) => (
+                          <li key={r.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-mono text-sm font-medium">{r.version}</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                {r.project}
+                                {r.crash_free_rate != null && ` · ${r.crash_free_rate.toFixed(1)}% crash-free`}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              {r.new_issues > 0 && (
+                                <span className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-red-600 dark:text-red-400">
+                                  +{r.new_issues} issues
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">{formatRelativeTime(r.created_at)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
         </section>
       </div>
     </div>

@@ -89,6 +89,10 @@ export type ApiEntity = {
   status: string; // healthy | warning | critical
   owner_team_id?: string;
   metadata?: EntityMetadata;
+  health_check_url?: string;
+  health_check_method?: string;
+  health_check_headers?: Record<string, string>;
+  health_check_expected_status?: number;
   created_at: string;
   updated_at: string;
 };
@@ -100,6 +104,10 @@ export type CreateEntityInput = {
   name: string;
   status?: string;
   metadata?: EntityMetadata;
+  health_check_url?: string;
+  health_check_method?: string;
+  health_check_headers?: Record<string, string>;
+  health_check_expected_status?: number;
 };
 
 // ─── Relationships ────────────────────────────────────────────────────────────
@@ -297,6 +305,30 @@ export type DashboardGCloudServiceHealth = {
   name: string;
   status: 'healthy' | 'degraded' | 'unknown';
   detail?: string;
+};
+
+export type DashboardSentryIssue = {
+  id: string;
+  title: string;
+  level: 'fatal' | 'error' | 'warning' | 'info';
+  project: string;
+  count: string;
+  last_seen: string;
+};
+
+export type DashboardSentryStats = {
+  total_issues: number;
+  unresolved_issues: number;
+  project_count: number;
+};
+
+export type DashboardSentryRelease = {
+  id: string;
+  version: string;
+  project: string;
+  crash_free_rate?: number;
+  new_issues: number;
+  created_at: string;
 };
 
 // ─── Core fetch ──────────────────────────────────────────────────────────────
@@ -575,4 +607,29 @@ export function getDashboardGCloudLogs(orgId: string): Promise<DashboardGCloudLo
 
 export function getDashboardGCloudServicesHealth(orgId: string): Promise<DashboardGCloudServiceHealth[]> {
   return apiFetch<DashboardGCloudServiceHealth[]>(`/organizations/${orgId}/dashboard/gcloud/services-health`);
+}
+
+// ─── Dashboard API (Sentry proxy) ─────────────────────────────────────────────
+
+export function connectSentry(
+  token: string,
+  orgSlug: string,
+  projectSlug?: string,
+): Promise<ApiIntegration> {
+  return apiFetch<ApiIntegration>('/integrations/sentry/connect', {
+    method: 'POST',
+    body: JSON.stringify({ token, org_slug: orgSlug, project_slug: projectSlug ?? '' }),
+  });
+}
+
+export function getDashboardSentryIssues(orgId: string): Promise<DashboardSentryIssue[]> {
+  return apiFetch<DashboardSentryIssue[]>(`/organizations/${orgId}/dashboard/sentry/issues`);
+}
+
+export function getDashboardSentryStats(orgId: string): Promise<DashboardSentryStats> {
+  return apiFetch<DashboardSentryStats>(`/organizations/${orgId}/dashboard/sentry/stats`);
+}
+
+export function getDashboardSentryReleases(orgId: string): Promise<DashboardSentryRelease[]> {
+  return apiFetch<DashboardSentryRelease[]>(`/organizations/${orgId}/dashboard/sentry/releases`);
 }

@@ -446,6 +446,10 @@ export function MapPage() {
           repository_url?: string;
           urls?: { name: string; link: string }[];
           integrations?: { name: string; type?: string }[];
+          health_check_url?: string;
+          health_check_method?: string;
+          health_check_headers?: Record<string, string>;
+          health_check_expected_status?: number;
         } | undefined;
         setViewingEntity({
           id: nodeId,
@@ -457,6 +461,10 @@ export function MapPage() {
           repository_url: meta?.repository_url,
           urls: meta?.urls,
           integrations: meta?.integrations,
+          health_check_url: meta?.health_check_url,
+          health_check_method: meta?.health_check_method,
+          health_check_headers: meta?.health_check_headers,
+          health_check_expected_status: meta?.health_check_expected_status,
         });
         setEditingEntity(null);
       }
@@ -536,6 +544,10 @@ export function MapPage() {
             urls: payload.urls,
             integrations: payload.integrations,
           },
+          health_check_url: payload.health_check_url || undefined,
+          health_check_method: payload.health_check_method || undefined,
+          health_check_headers: payload.health_check_headers && Object.keys(payload.health_check_headers).length > 0 ? payload.health_check_headers : undefined,
+          health_check_expected_status: payload.health_check_expected_status,
         });
 
         const entityNode: Node = {
@@ -596,6 +608,10 @@ export function MapPage() {
             urls: payload.urls,
             integrations: payload.integrations,
           },
+          health_check_url: payload.health_check_url || undefined,
+          health_check_method: payload.health_check_method || undefined,
+          health_check_headers: payload.health_check_headers && Object.keys(payload.health_check_headers).length > 0 ? payload.health_check_headers : undefined,
+          health_check_expected_status: payload.health_check_expected_status,
         });
         setNodes((prev) =>
           prev.map((n) =>

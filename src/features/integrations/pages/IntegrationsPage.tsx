@@ -12,7 +12,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '@/features/auth';
-import { getOrganization, getIntegrations, disconnectIntegration, updateIntegrationMetadata, type ApiOrganization, type ApiIntegration } from '@/lib/api';
+import { getOrganization, getIntegrations, disconnectIntegration, updateIntegrationMetadata, connectSentry, type ApiOrganization, type ApiIntegration } from '@/lib/api';
 import { getIntegrationConnectUrl } from '@/lib/integrations';
 import { canEditOrganization } from '@/lib/permissions';
 
@@ -56,10 +56,10 @@ const INTEGRATIONS = [
   },
 ] as const;
 
-type ConnectableId = 'github' | 'gcloud';
+type ConnectableId = 'github' | 'gcloud' | 'sentry';
 
 function isConnectable(id: string): id is ConnectableId {
-  return id === 'github' || id === 'gcloud';
+  return id === 'github' || id === 'gcloud' || id === 'sentry';
 }
 
 export function IntegrationsPage() {
@@ -73,6 +73,10 @@ export function IntegrationsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [gcloudProjectId, setGcloudProjectId] = useState('');
   const [savingGcloudId, setSavingGcloudId] = useState<string | null>(null);
+  const [sentryToken, setSentryToken] = useState('');
+  const [sentryOrgSlug, setSentryOrgSlug] = useState('');
+  const [sentryProjectSlug, setSentryProjectSlug] = useState('');
+  const [savingSentry, setSavingSentry] = useState(false);
 
   const orgId = user?.organization_id;
   const canManage = orgId && (canEditOrganization(user?.role ?? '') || org?.owner_id === user?.id);
@@ -130,7 +134,28 @@ export function IntegrationsPage() {
 
   const handleConnect = (provider: ConnectableId) => {
     if (!orgId || !canManage) return;
+    if (provider === 'sentry') return; // Sentry uses token form, not OAuth
     window.location.href = getIntegrationConnectUrl(provider, orgId);
+  };
+
+  const handleConnectSentry = async () => {
+    if (!sentryToken.trim() || !sentryOrgSlug.trim()) return;
+    setSavingSentry(true);
+    try {
+      await connectSentry(sentryToken.trim(), sentryOrgSlug.trim(), sentryProjectSlug.trim() || undefined);
+      if (orgId) {
+        const list = await getIntegrations(orgId);
+        setIntegrations(list);
+      }
+      setSentryToken('');
+      setSentryOrgSlug('');
+      setSentryProjectSlug('');
+      setMessage({ type: 'success', text: 'Sentry connected.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to connect Sentry' });
+    } finally {
+      setSavingSentry(false);
+    }
   };
 
   const handleDisconnect = async (integrationId: string) => {
@@ -231,6 +256,9 @@ export function IntegrationsPage() {
                                 ({connected.metadata.owner}/{connected.metadata.repo})
                               </span>
                             )}
+                            {connected.metadata?.org_slug && (
+                              <span className="ml-1">(org: {connected.metadata.org_slug})</span>
+                            )}
                           </span>
                           <Button
                             variant="outline"
@@ -270,6 +298,40 @@ export function IntegrationsPage() {
                             )}
                           </div>
                         )}
+                      </div>
+                    ) : id === 'sentry' ? (
+                      <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Paste your Sentry Auth Token and organization slug to connect.
+                        </p>
+                        <Input
+                          type="password"
+                          placeholder="Auth Token (sntrys_…)"
+                          value={sentryToken}
+                          onChange={(e) => setSentryToken(e.target.value)}
+                          className="font-mono text-sm"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Organization slug (e.g. my-org)"
+                          value={sentryOrgSlug}
+                          onChange={(e) => setSentryOrgSlug(e.target.value)}
+                          className="font-mono text-sm"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Project slug (optional)"
+                          value={sentryProjectSlug}
+                          onChange={(e) => setSentryProjectSlug(e.target.value)}
+                          className="font-mono text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={savingSentry || !sentryToken.trim() || !sentryOrgSlug.trim()}
+                          onClick={handleConnectSentry}
+                        >
+                          {savingSentry ? 'Connecting…' : 'Connect'}
+                        </Button>
                       </div>
                     ) : (
                       <Button

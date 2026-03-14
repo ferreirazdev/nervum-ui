@@ -1,6 +1,11 @@
-import { Plus, ArrowRight, Trash2, ExternalLink, Github } from 'lucide-react';
+import { Plus, ArrowRight, Trash2, ExternalLink, Github, Activity } from 'lucide-react';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/app/components/ui/collapsible';
 import {
   ENTITY_TYPES,
   ENTITY_TYPE_TO_MODAL_TYPE,
@@ -59,11 +64,21 @@ const TYPE_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS: Array<AddNodePayload['status']> = ['healthy', 'warning', 'critical'];
 
-/** Returns true only for safe https:// URLs — blocks javascript:, data:, http:, etc. */
+/** Returns true only for safe https:// URLs — blocks javascript:, data:, etc. */
 function isValidHttpsUrl(value: string): boolean {
   try {
     const url = new URL(value);
     return url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/** Returns true for http/https URLs (used for health check endpoints). */
+function isValidHealthCheckUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
   } catch {
     return false;
   }
@@ -118,6 +133,11 @@ export function AddNodeForm({
   const [repositoryUrl, setRepositoryUrl] = useState('');
   const [urls, setUrls] = useState<{ name: string; link: string }[]>([]);
   const [integrations, setIntegrations] = useState<{ name: string; type?: string }[]>([]);
+  const [healthCheckUrl, setHealthCheckUrl] = useState('');
+  const [healthCheckMethod, setHealthCheckMethod] = useState('GET');
+  const [healthCheckHeaders, setHealthCheckHeaders] = useState<{ name: string; value: string }[]>([]);
+  const [healthCheckExpectedStatus, setHealthCheckExpectedStatus] = useState(200);
+  const [healthCheckOpen, setHealthCheckOpen] = useState(false);
   const [sourceHandle, setSourceHandle] = useState<HandlePosition>(defaultSourceHandle ?? DEFAULT_SOURCE_HANDLE);
   const [targetHandle, setTargetHandle] = useState<HandlePosition>(defaultTargetHandle ?? DEFAULT_TARGET_HANDLE);
 
@@ -147,6 +167,15 @@ export function AddNodeForm({
       setRepositoryUrl(editingEntity.repository_url ?? '');
       setUrls(editingEntity.urls ?? []);
       setIntegrations(editingEntity.integrations ?? []);
+      setHealthCheckUrl(editingEntity.health_check_url ?? '');
+      setHealthCheckMethod(editingEntity.health_check_method ?? 'GET');
+      setHealthCheckHeaders(
+        editingEntity.health_check_headers && Object.keys(editingEntity.health_check_headers).length > 0
+          ? Object.entries(editingEntity.health_check_headers).map(([name, value]) => ({ name, value }))
+          : [],
+      );
+      setHealthCheckExpectedStatus(editingEntity.health_check_expected_status ?? 200);
+      if (editingEntity.health_check_url) setHealthCheckOpen(true);
       setStep(1);
     } else if (parentNode) {
       setSelectedType(defaultType);
@@ -222,6 +251,10 @@ export function AddNodeForm({
     setRepositoryUrl('');
     setUrls([]);
     setIntegrations([]);
+    setHealthCheckUrl('');
+    setHealthCheckMethod('GET');
+    setHealthCheckHeaders([]);
+    setHealthCheckExpectedStatus(200);
     onClose();
   };
 
@@ -255,27 +288,47 @@ export function AddNodeForm({
       .map((u) => ({ name: u.name.trim(), link: u.link.trim() }));
     const payloadIntegrations = integrations.filter((i) => i.name.trim()).map((i) => ({ name: i.name.trim(), type: i.type?.trim() || undefined }));
     const repoUrl = repositoryUrl.trim() ? normalizeGitHubUrl(repositoryUrl) : undefined;
+    const hcUrl = healthCheckUrl.trim();
+    const hcHeaders =
+      healthCheckHeaders.filter((h) => h.name.trim()).length > 0
+        ? Object.fromEntries(
+            healthCheckHeaders
+              .filter((h) => h.name.trim())
+              .map((h) => [h.name.trim(), h.value.trim()]),
+          )
+        : undefined;
+    const healthCheckPayload =
+      isEditMode
+        ? {
+            health_check_url: hcUrl && isValidHealthCheckUrl(hcUrl) ? hcUrl : '',
+            health_check_method: hcUrl ? (healthCheckMethod || 'GET') : '',
+            health_check_headers: hcUrl ? hcHeaders : {},
+            health_check_expected_status: hcUrl ? (healthCheckExpectedStatus || 200) : 200,
+          }
+        : hcUrl && isValidHealthCheckUrl(hcUrl)
+          ? {
+              health_check_url: hcUrl,
+              health_check_method: healthCheckMethod || 'GET',
+              health_check_headers: hcHeaders,
+              health_check_expected_status: healthCheckExpectedStatus || 200,
+            }
+          : {};
+    const basePayload = {
+      type: selectedType,
+      name: name.trim(),
+      icon: displayIcon,
+      status,
+      metadata: metadata.trim() || undefined,
+      repository_url: repoUrl,
+      urls: payloadUrls.length ? payloadUrls : undefined,
+      integrations: payloadIntegrations.length ? payloadIntegrations : undefined,
+      ...healthCheckPayload,
+    };
     if (isEditMode && editingEntity && onUpdateNode) {
-      onUpdateNode(editingEntity.id, {
-        type: selectedType,
-        name: name.trim(),
-        icon: displayIcon,
-        status,
-        metadata: metadata.trim() || undefined,
-        repository_url: repoUrl,
-        urls: payloadUrls.length ? payloadUrls : undefined,
-        integrations: payloadIntegrations.length ? payloadIntegrations : undefined,
-      });
+      onUpdateNode(editingEntity.id, basePayload);
     } else {
       onAddNode({
-        type: selectedType,
-        name: name.trim(),
-        icon: displayIcon,
-        status,
-        metadata: metadata.trim() || undefined,
-        repository_url: repoUrl,
-        urls: payloadUrls.length ? payloadUrls : undefined,
-        integrations: payloadIntegrations.length ? payloadIntegrations : undefined,
+        ...basePayload,
         sourceHandle,
         targetHandle,
       });
@@ -599,6 +652,109 @@ export function AddNodeForm({
               </div>
             </div>
             </div>
+
+            <Collapsible open={healthCheckOpen} onOpenChange={setHealthCheckOpen} className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                >
+                  <Activity className="h-3.5 w-3.5" />
+                  Health check (automation)
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Optional. When set, the health check CLI will probe this URL and update this component&apos;s status (healthy / critical).
+                </p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">URL</label>
+                  <Input
+                    placeholder="https://api.example.com/health"
+                    value={healthCheckUrl}
+                    onChange={(e) => setHealthCheckUrl(e.target.value)}
+                    className="font-mono text-sm"
+                  />
+                  {healthCheckUrl.trim() && !isValidHealthCheckUrl(healthCheckUrl.trim()) && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">Enter a valid http or https URL.</p>
+                  )}
+                </div>
+                <div className="flex gap-4">
+                  <div className="space-y-2 flex-1">
+                    <label className="text-sm font-medium text-foreground">Method</label>
+                    <select
+                      value={healthCheckMethod}
+                      onChange={(e) => setHealthCheckMethod(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                    >
+                      <option value="GET">GET</option>
+                      <option value="POST">POST</option>
+                      <option value="PUT">PUT</option>
+                      <option value="HEAD">HEAD</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2 flex-1">
+                    <label className="text-sm font-medium text-foreground">Expected status</label>
+                    <Input
+                      type="number"
+                      min={100}
+                      max={599}
+                      value={healthCheckExpectedStatus}
+                      onChange={(e) => setHealthCheckExpectedStatus(parseInt(e.target.value, 10) || 200)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Headers (optional)</label>
+                  <div className="space-y-2">
+                    {healthCheckHeaders.map((h, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <Input
+                          placeholder="Header name"
+                          value={h.name}
+                          onChange={(e) =>
+                            setHealthCheckHeaders((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)),
+                            )
+                          }
+                          className="flex-1 min-w-0 font-mono text-xs"
+                        />
+                        <Input
+                          placeholder="Value"
+                          value={h.value}
+                          onChange={(e) =>
+                            setHealthCheckHeaders((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, value: e.target.value } : x)),
+                            )
+                          }
+                          className="flex-1 min-w-0 font-mono text-xs"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => setHealthCheckHeaders((prev) => prev.filter((_, i) => i !== idx))}
+                          aria-label="Remove header"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHealthCheckHeaders((prev) => [...prev, { name: '', value: '' }])}
+                      className="gap-1"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add header
+                    </Button>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Integrations</label>

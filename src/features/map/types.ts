@@ -30,6 +30,10 @@ export interface AddNodePayload {
   repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
+  health_check_url?: string;
+  health_check_method?: string;
+  health_check_headers?: Record<string, string>;
+  health_check_expected_status?: number;
   sourceHandle?: HandlePosition;
   targetHandle?: HandlePosition;
 }
@@ -45,6 +49,10 @@ export interface EditingEntity {
   repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
+  health_check_url?: string;
+  health_check_method?: string;
+  health_check_headers?: Record<string, string>;
+  health_check_expected_status?: number;
 }
 
 export interface CreateConnectionPayload {
