@@ -36,6 +36,10 @@ As a SaaS:
 - **Routing**: React Router 7
 - **Forms**: React Hook Form
 - **Map**: React Flow (node/edge graph for environment maps)
+- **Charts**: Recharts; Motion for animations
+- **Theme**: next-themes (class-based, dark default)
+- **i18n**: i18next, react-i18next
+- **Testing**: Vitest, jsdom, Testing Library
 
 ---
 
@@ -45,11 +49,30 @@ As a SaaS:
 src/
   app/                    # App shell, layout, shared UI
     components/           # Reusable components (CommandBar, Controls, AddNodeModal, ui/)
-    layouts/              # AppLayout (header, nav, outlet)
+    layouts/              # AppLayout, DashboardLayout, MapLayout
+    config/               # App config (e.g. roadmap)
   features/
-    auth/                 # Login, Register, auth flows
-    environments/         # Environments list and cards
+    auth/                 # Login, Register, AuthProvider, useAuth
+    landing/              # Landing page
+    onboarding/           # OnboardingPage, MemberOnboardingPage
+    dashboard/            # Dashboard page
+    environments/        # Environments list and cards
     map/                  # Interactive environment map (React Flow)
+    organization/        # Organization page
+    teams/                # Teams page
+    users/                # Users page
+    profile/              # Profile page
+    integrations/         # GitHub / GCloud connect
+    repositories/         # Repositories page
+    gcloud/               # GCP UI: services, cloud-sql, compute
+    invitations/          # Accept invite page
+    chat/                 # GlobalChat, ChatPanel, ChatProvider
+  lib/                    # Shared utilities and API client
+    api.ts                # apiFetch, auth/orgs/environments/entities/teams/dashboard
+    api/gcloud.ts         # GCloud-only API calls
+    integrations.ts       # getApiBase(), OAuth connect URLs
+    permissions.ts        # canViewOrganization, etc.
+    onboarding.ts         # Onboarding helpers
   styles/                 # Global CSS, theme
 ```
 
@@ -67,14 +90,11 @@ src/
 
 2. **Configure the API base URL**
 
-   In a typical setup you will have an environment variable such as:
+   Set `VITE_API_BASE_URL` to your nervum-go API base (e.g. `http://localhost:8080/api/v1`). The app reads it in `src/lib/integrations.ts` via `getApiBase()`.
 
    ```bash
-   # example, adjust name and value to match your setup
    VITE_API_BASE_URL=http://localhost:8080/api/v1
    ```
-
-   Check the codebase or `.env.example` (if present) for the exact variable name used.
 
 3. **Start the dev server**
 
@@ -98,11 +118,19 @@ src/
 
 ## Main routes
 
-- **`/`** — Redirects to `/environments`
+- **`/`** — Landing page
+- **`/login`**, **`/register`** — Auth (public)
+- **`/accept-invite`** — Accept invitation by token (public)
+- **`/onboarding`**, **`/member-onboarding`** — Onboarding flows (protected)
+- **`/dashboard`** — Dashboard (protected, after onboarding)
+- **`/organization`** — Organization settings (protected, org access required)
+- **`/teams`**, **`/users`**, **`/profile`** — Teams, users, profile (protected)
+- **`/integrations`**, **`/repositories`** — Integrations and repositories (protected)
+- **`/gcloud/services`**, **`/gcloud/cloud-sql`**, **`/gcloud/compute`** — GCP services UI (protected)
 - **`/environments`** — List of environments (prod, staging, dev); click a card to open its map
 - **`/environments/:envId`** — Interactive map for that environment (nodes, edges, filters, add node)
-- **`/login`** — Login page
-- **`/register`** — Registration page
+
+Legacy redirects: `/services` → `/gcloud/services`, `/cloud-sql` → `/gcloud/cloud-sql`, `/compute` → `/gcloud/compute`.
 
 ---
 
@@ -122,6 +150,7 @@ For a typical SaaS setup:
 
 ---
 
-## Related
+## Documentation
 
-- **API backend**: [`nervum-go`](https://github.com/nervum/nervum-go) — Go API for organizations, users, environments, entities, and relationships (GORM + Postgres).
+- **[docs/README.md](docs/README.md)** — Index of frontend documentation (architecture, integrations).
+- **API backend**: [`nervum-go`](https://github.com/nervum/nervum-go) — Go API for organizations, users, environments, entities, integrations, and more (GORM + Postgres). See its [OpenAPI spec](https://github.com/nervum/nervum-go/blob/main/openapi/openapi.yaml) for the full API surface.
