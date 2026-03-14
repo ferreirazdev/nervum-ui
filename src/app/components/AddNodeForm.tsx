@@ -1,5 +1,6 @@
-import { Plus, ArrowRight, Trash2 } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { Plus, ArrowRight, Trash2, ExternalLink, Github } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Link } from 'react-router';
 import {
   ENTITY_TYPES,
   ENTITY_TYPE_TO_MODAL_TYPE,
@@ -17,15 +18,25 @@ import type { AddNodePayload } from '@/features/map/types';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import type { SelectedNode, EditingEntity } from '@/features/map/types';
+import {
+  getStoredRepositories,
+  getGitHubRepos,
+  getIntegrations,
+  type ApiStoredRepository,
+  type ApiGitHubRepo,
+  type ApiIntegration,
+} from '@/lib/api';
 
 export interface AddNodeFormProps {
   parentNode: SelectedNode | null;
   editingEntity: EditingEntity | null;
   onClose: () => void;
+  onBackToView?: () => void;
   onAddNode: (payload: AddNodePayload) => void;
   onUpdateNode?: (id: string, payload: AddNodePayload) => void;
   defaultSourceHandle?: HandlePosition;
   defaultTargetHandle?: HandlePosition;
+  organizationId?: string;
 }
 
 function getDefaultEntityType(parentNode: SelectedNode): EntityType {
@@ -48,6 +59,38 @@ const TYPE_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS: Array<AddNodePayload['status']> = ['healthy', 'warning', 'critical'];
 
+/** Returns true only for safe https:// URLs — blocks javascript:, data:, http:, etc. */
+function isValidHttpsUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/** Normalize owner/repo or full URL to a full GitHub https URL, or empty string if invalid. */
+function normalizeGitHubUrl(value: string): string {
+  const t = value.trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) {
+    // Only allow https://github.com/
+    return /^https:\/\/github\.com\//i.test(t) ? t : '';
+  }
+  if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/.test(t)) return `https://github.com/${t}`;
+  return '';
+}
+
+/** Extract repo display name (owner/repo) from a GitHub URL or owner/repo string. */
+function repoDisplayName(value: string): string {
+  const t = value.trim();
+  if (!t) return '';
+  const match = t.match(/github\.com[/:]([^/]+\/[^/]+?)(?:[/?#]|$)/i);
+  if (match) return match[1];
+  if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/.test(t)) return t;
+  return t;
+}
+
 /**
  * Presentational add/edit node form. Use inside a modal or sidebar.
  * Caller must ensure either parentNode or editingEntity is non-null.
@@ -56,10 +99,12 @@ export function AddNodeForm({
   parentNode,
   editingEntity,
   onClose,
+  onBackToView,
   onAddNode,
   onUpdateNode,
   defaultSourceHandle,
   defaultTargetHandle,
+  organizationId,
 }: AddNodeFormProps) {
   const isEditMode = Boolean(editingEntity);
   const showOnlyCustomForm = Boolean(parentNode) || isEditMode;
@@ -70,10 +115,17 @@ export function AddNodeForm({
   const [icon, setIcon] = useState('');
   const [status, setStatus] = useState<AddNodePayload['status']>('healthy');
   const [metadata, setMetadata] = useState('');
+  const [repositoryUrl, setRepositoryUrl] = useState('');
   const [urls, setUrls] = useState<{ name: string; link: string }[]>([]);
   const [integrations, setIntegrations] = useState<{ name: string; type?: string }[]>([]);
   const [sourceHandle, setSourceHandle] = useState<HandlePosition>(defaultSourceHandle ?? DEFAULT_SOURCE_HANDLE);
   const [targetHandle, setTargetHandle] = useState<HandlePosition>(defaultTargetHandle ?? DEFAULT_TARGET_HANDLE);
+
+  const [storedRepos, setStoredRepos] = useState<ApiStoredRepository[]>([]);
+  const [githubRepos, setGithubRepos] = useState<ApiGitHubRepo[]>([]);
+  const [integrationsList, setIntegrationsList] = useState<ApiIntegration[]>([]);
+  const [loadingStored, setLoadingStored] = useState(false);
+  const [loadingGitHub, setLoadingGitHub] = useState(false);
 
   const defaultType = useMemo(
     () =>
@@ -92,6 +144,7 @@ export function AddNodeForm({
       setIcon(editingEntity.icon);
       setStatus(editingEntity.status);
       setMetadata(editingEntity.metadata ?? '');
+      setRepositoryUrl(editingEntity.repository_url ?? '');
       setUrls(editingEntity.urls ?? []);
       setIntegrations(editingEntity.integrations ?? []);
       setStep(1);
@@ -108,6 +161,53 @@ export function AddNodeForm({
     }
   }, [parentNode, editingEntity, defaultType, defaultSourceHandle, defaultTargetHandle]);
 
+  const storedFullNames = useMemo(
+    () => new Set(storedRepos.map((r) => r.full_name)),
+    [storedRepos],
+  );
+  const repoList = useMemo(() => {
+    const names = new Set<string>();
+    storedRepos.forEach((r) => names.add(r.full_name));
+    githubRepos.forEach((r) => names.add(r.full_name));
+    return Array.from(names)
+      .sort()
+      .map((full_name) => ({ full_name, imported: storedFullNames.has(full_name) }));
+  }, [storedRepos, githubRepos, storedFullNames]);
+
+  useEffect(() => {
+    if (!organizationId) {
+      setStoredRepos([]);
+      setLoadingStored(false);
+      return;
+    }
+    setLoadingStored(true);
+    getStoredRepositories(organizationId)
+      .then(setStoredRepos)
+      .catch(() => setStoredRepos([]))
+      .finally(() => setLoadingStored(false));
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (!organizationId) {
+      setIntegrationsList([]);
+      return;
+    }
+    getIntegrations(organizationId)
+      .then(setIntegrationsList)
+      .catch(() => setIntegrationsList([]));
+  }, [organizationId]);
+
+  const hasGitHub = integrationsList.some((i) => i.provider === 'github');
+
+  const handleFetchFromGitHub = useCallback(() => {
+    if (!organizationId || !hasGitHub) return;
+    setLoadingGitHub(true);
+    getGitHubRepos(organizationId)
+      .then(setGithubRepos)
+      .catch(() => setGithubRepos([]))
+      .finally(() => setLoadingGitHub(false));
+  }, [organizationId, hasGitHub]);
+
   const modalType = ENTITY_TYPE_TO_MODAL_TYPE[selectedType] ?? 'services';
   const presets = NODE_PRESETS_BY_MODAL_TYPE[modalType] ?? [];
   const displayIcon = icon || CATEGORY_ICON[selectedType] || 'server';
@@ -119,6 +219,7 @@ export function AddNodeForm({
     setIcon('');
     setStatus('healthy');
     setMetadata('');
+    setRepositoryUrl('');
     setUrls([]);
     setIntegrations([]);
     onClose();
@@ -148,8 +249,12 @@ export function AddNodeForm({
 
   const handleCreateCustom = () => {
     if (!name.trim()) return;
-    const payloadUrls = urls.filter((u) => u.name.trim() || u.link.trim()).map((u) => ({ name: u.name.trim(), link: u.link.trim() }));
+    const payloadUrls = urls
+      .filter((u) => u.name.trim() || u.link.trim())
+      .filter((u) => !u.link.trim() || isValidHttpsUrl(u.link.trim()))
+      .map((u) => ({ name: u.name.trim(), link: u.link.trim() }));
     const payloadIntegrations = integrations.filter((i) => i.name.trim()).map((i) => ({ name: i.name.trim(), type: i.type?.trim() || undefined }));
+    const repoUrl = repositoryUrl.trim() ? normalizeGitHubUrl(repositoryUrl) : undefined;
     if (isEditMode && editingEntity && onUpdateNode) {
       onUpdateNode(editingEntity.id, {
         type: selectedType,
@@ -157,6 +262,7 @@ export function AddNodeForm({
         icon: displayIcon,
         status,
         metadata: metadata.trim() || undefined,
+        repository_url: repoUrl,
         urls: payloadUrls.length ? payloadUrls : undefined,
         integrations: payloadIntegrations.length ? payloadIntegrations : undefined,
       });
@@ -167,6 +273,7 @@ export function AddNodeForm({
         icon: displayIcon,
         status,
         metadata: metadata.trim() || undefined,
+        repository_url: repoUrl,
         urls: payloadUrls.length ? payloadUrls : undefined,
         integrations: payloadIntegrations.length ? payloadIntegrations : undefined,
         sourceHandle,
@@ -335,6 +442,113 @@ export function AddNodeForm({
                 onChange={(e) => setMetadata(e.target.value)}
               />
             </div>
+
+            {/* Links: GitHub repository + URLs (grouped to mirror view panel) */}
+            <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Links
+              </h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">GitHub repository (optional)</label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  placeholder="owner/repo or https://github.com/owner/repo"
+                  value={repositoryUrl}
+                  onChange={(e) => setRepositoryUrl(e.target.value)}
+                  className="flex-1 min-w-0"
+                />
+                {repositoryUrl.trim() && (() => {
+                  const href = normalizeGitHubUrl(repositoryUrl);
+                  if (!href) return null;
+                  const name = repoDisplayName(repositoryUrl);
+                  return (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                    >
+                      <Github className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {name && <span className="font-mono text-foreground">{name}</span>}
+                      <span>Open in GitHub</span>
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    </a>
+                  );
+                })()}
+              </div>
+              {organizationId && (
+                <div className="mt-2 space-y-2">
+                  {loadingStored ? (
+                    <p className="text-sm text-muted-foreground">Loading repositories…</p>
+                  ) : repoList.length > 0 ? (
+                    <>
+                      <ul className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+                        {repoList.map(({ full_name, imported }) => (
+                          <li key={full_name}>
+                            <button
+                              type="button"
+                              onClick={() => setRepositoryUrl(`https://github.com/${full_name}`)}
+                              className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/80"
+                            >
+                              <span className="min-w-0 truncate font-mono text-foreground">
+                                {full_name}
+                              </span>
+                              <span
+                                className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${
+                                  imported
+                                    ? 'bg-green-500/15 text-green-700 dark:text-green-400'
+                                    : 'bg-muted text-muted-foreground'
+                                }`}
+                              >
+                                {imported ? 'Imported' : 'Not imported'}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      {hasGitHub && githubRepos.length === 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={loadingGitHub}
+                          onClick={handleFetchFromGitHub}
+                        >
+                          {loadingGitHub ? 'Fetching…' : 'Fetch from GitHub'}
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        No repositories added yet.
+                      </p>
+                      {hasGitHub ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={loadingGitHub}
+                          onClick={handleFetchFromGitHub}
+                        >
+                          {loadingGitHub ? 'Fetching…' : 'Fetch from GitHub'}
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          <Link
+                            to="/integrations"
+                            className="text-primary underline hover:no-underline"
+                          >
+                            Connect GitHub in Integrations
+                          </Link>{' '}
+                          to see more repositories.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">URLs</label>
               <div className="space-y-2">
@@ -384,6 +598,8 @@ export function AddNodeForm({
                 </Button>
               </div>
             </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Integrations</label>
               <div className="space-y-2">
@@ -469,6 +685,11 @@ export function AddNodeForm({
             <div className="flex gap-2 pt-2">
               {!showOnlyCustomForm && (
                 <Button type="button" variant="ghost" onClick={handleBackToStep1}>
+                  Back
+                </Button>
+              )}
+              {isEditMode && onBackToView && (
+                <Button type="button" variant="ghost" onClick={onBackToView}>
                   Back
                 </Button>
               )}

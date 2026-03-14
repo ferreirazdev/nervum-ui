@@ -27,6 +27,7 @@ export interface AddNodePayload {
   icon: string;
   status: NodeStatus;
   metadata?: string;
+  repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
   sourceHandle?: HandlePosition;
@@ -41,6 +42,7 @@ export interface EditingEntity {
   icon: string;
   status: NodeStatus;
   metadata?: string;
+  repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
 }

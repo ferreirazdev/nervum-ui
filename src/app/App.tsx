@@ -14,10 +14,10 @@ import { UsersPage } from '@/features/users';
 import { ProfilePage } from '@/features/profile';
 import { IntegrationsPage } from '@/features/integrations';
 import { RepositoriesPage } from '@/features/repositories';
+import { ServicesPage, CloudSQLPage, ComputePage } from '@/features/gcloud';
 import { AcceptInvitePage } from '@/features/invitations';
 import { ChatProvider, GlobalChat } from '@/features/chat';
 import { Toaster } from '@/app/components/ui/sonner';
-import { getMemberOnboardingCompleted } from '@/lib/onboarding';
 import { getOrganization } from '@/lib/api';
 import { canViewOrganization } from '@/lib/permissions';
 
@@ -67,7 +67,7 @@ function RequireOnboardingCompleted({ children }: { children: React.ReactNode })
   if (isOwner) {
     if (!user.onboarding) return <Navigate to="/onboarding" replace />;
   } else {
-    if (!getMemberOnboardingCompleted()) return <Navigate to="/member-onboarding" replace />;
+    if (!user.onboarding) return <Navigate to="/member-onboarding" replace />;
   }
   return <>{children}</>;
 }
@@ -148,6 +148,39 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <RequireOnboardingCompleted>
               <RepositoriesPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      { path: 'services', element: <Navigate to="/gcloud/services" replace /> },
+      { path: 'cloud-sql', element: <Navigate to="/gcloud/cloud-sql" replace /> },
+      { path: 'compute', element: <Navigate to="/gcloud/compute" replace /> },
+      {
+        path: 'gcloud/services',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <ServicesPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'gcloud/cloud-sql',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <CloudSQLPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'gcloud/compute',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <ComputePage />
             </RequireOnboardingCompleted>
           </ProtectedRoute>
         ),

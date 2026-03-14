@@ -62,7 +62,10 @@ export function AppSidebar() {
                   <SidebarMenuItem key={path}>
                     <SidebarMenuButton
                       asChild
-                      isActive={location.pathname === path || (path === '/environments' && location.pathname.startsWith('/environments/'))}
+                      isActive={
+                        location.pathname === path ||
+                        (path === '/environments' && location.pathname.startsWith('/environments/'))
+                      }
                       tooltip={label}
                     >
                       <Link to={path}>
@@ -76,6 +79,34 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <SidebarCollapsibleSection label="GCloud" className="mt-6">
+          <SidebarMenu className="space-y-1">
+            <SidebarMenuItem>
+              <SidebarMenuSubButton
+                asChild
+                isActive={location.pathname === '/gcloud/services'}
+              >
+                <Link to="/gcloud/services">Services (Cloud Run)</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuSubButton
+                asChild
+                isActive={location.pathname === '/gcloud/cloud-sql'}
+              >
+                <Link to="/gcloud/cloud-sql">Cloud SQL</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuSubButton
+                asChild
+                isActive={location.pathname === '/gcloud/compute'}
+              >
+                <Link to="/gcloud/compute">Compute</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarCollapsibleSection>
         <SidebarCollapsibleSection label="Settings" className="mt-6">
           <SidebarMenu className="space-y-1">
             <SidebarMenuItem>

@@ -78,7 +78,8 @@ export function OnboardingPage() {
     const gcloud = searchParams.get('gcloud');
     const err = searchParams.get('error');
     if (err) {
-      setError(decodeURIComponent(err));
+      // Use a static message — never render arbitrary URL parameter content.
+      setError('Integration setup failed. Please try again.');
       setSearchParams({}, { replace: true });
       return;
     }

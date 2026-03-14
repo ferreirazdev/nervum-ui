@@ -65,7 +65,7 @@ export function LoginPage() {
       const user = await login(values.email, values.password);
       navigate(user.onboarding ? '/dashboard' : '/onboarding');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Login failed');
+      setError('Invalid email or password.');
     }
   }
 

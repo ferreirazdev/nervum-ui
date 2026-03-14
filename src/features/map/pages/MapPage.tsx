@@ -13,7 +13,7 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Save, Link2, Trash2 } from 'lucide-react';
+import { Save, Link2, Trash2, ExternalLink, Pencil, Github } from 'lucide-react';
 import SystemNode from '@/app/components/SystemNode';
 import { CommandBar } from '@/app/components/CommandBar';
 import { Controls } from '@/app/components/Controls';
@@ -66,6 +66,8 @@ import {
 import type { HandlePosition, EntityType } from '@/features/map/constants';
 import type { SelectedNode } from '@/features/map/types';
 import type { AddNodePayload, CreateConnectionPayload, EditingEntity } from '@/features/map/types';
+import { NODE_ICON_MAP } from '@/features/map/iconMap';
+import { Button } from '@/app/components/ui/button';
 
 const nodeTypes: NodeTypes = { systemNode: SystemNode };
 
@@ -154,6 +156,146 @@ function isLeafNodeId(id: string): boolean {
   return !id.startsWith('central-') && !id.startsWith('cat-');
 }
 
+function normalizeGitHubUrlForView(value: string): string {
+  const t = value.trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) return t;
+  if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/.test(t)) return `https://github.com/${t}`;
+  return t;
+}
+
+/** Extract repo display name (owner/repo) from a GitHub URL or owner/repo string. */
+function repoDisplayName(repositoryUrl: string): string {
+  const t = repositoryUrl.trim();
+  if (!t) return '';
+  const match = t.match(/github\.com[/:]([^/]+\/[^/]+?)(?:[/?#]|$)/i);
+  if (match) return match[1];
+  if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/.test(t)) return t;
+  return t;
+}
+
+const SECTION_LABEL_CLASS = 'mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground';
+const SECTION_CARD_CLASS = 'rounded-lg border border-border bg-muted/30 p-3';
+
+function statusIndicatorClass(status: string): string {
+  switch (status) {
+    case 'healthy':
+      return 'bg-green-500/80';
+    case 'warning':
+      return 'bg-amber-500/80';
+    case 'critical':
+      return 'bg-red-500/80';
+    default:
+      return 'bg-muted-foreground/60';
+  }
+}
+
+function NodeViewPanel({ entity }: { entity: EditingEntity }) {
+  const repoHref = entity.repository_url?.trim()
+    ? normalizeGitHubUrlForView(entity.repository_url)
+    : '';
+  const linkFocusClass = 'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded';
+
+  return (
+    <div className="flex flex-col gap-4 overflow-y-auto p-4">
+      {/* Header: icon, name, status */}
+      <div className={SECTION_CARD_CLASS}>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background/80 text-lg">
+            {NODE_ICON_MAP[entity.icon] ?? entity.icon}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium text-foreground" title={entity.name}>
+              {entity.name}
+            </p>
+            <div className="mt-0.5 flex items-center gap-2">
+              <span
+                className={`h-2 w-2 shrink-0 rounded-full ${statusIndicatorClass(entity.status)}`}
+                aria-hidden
+              />
+              <span className="text-xs capitalize text-muted-foreground">{entity.status}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Metadata */}
+      <div className={SECTION_CARD_CLASS}>
+        <h3 className={SECTION_LABEL_CLASS}>Metadata</h3>
+        <p className="text-sm text-foreground">{entity.metadata?.trim() ? entity.metadata : <span className="text-muted-foreground">—</span>}</p>
+      </div>
+
+      {/* Repository */}
+      <div className={SECTION_CARD_CLASS}>
+        <h3 className={SECTION_LABEL_CLASS}>Repository</h3>
+        {repoHref ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Github className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="font-mono text-sm text-foreground">{repoDisplayName(entity.repository_url ?? '')}</span>
+            </div>
+            <a
+              href={repoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary underline hover:no-underline ${linkFocusClass}`}
+            >
+              Open in GitHub
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            </a>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">—</p>
+        )}
+      </div>
+
+      {/* URLs */}
+      <div className={SECTION_CARD_CLASS}>
+        <h3 className={SECTION_LABEL_CLASS}>URLs</h3>
+        {entity.urls && entity.urls.length > 0 ? (
+          <ul className="space-y-1.5">
+            {entity.urls.map((u, i) => (
+              <li key={i}>
+                {u.link ? (
+                  <a
+                    href={u.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-sm text-primary underline hover:no-underline ${linkFocusClass}`}
+                  >
+                    {u.name || u.link}
+                  </a>
+                ) : (
+                  <span className="text-sm text-foreground">{u.name || '—'}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">—</p>
+        )}
+      </div>
+
+      {/* Integrations */}
+      <div className={SECTION_CARD_CLASS}>
+        <h3 className={SECTION_LABEL_CLASS}>Integrations</h3>
+        {entity.integrations && entity.integrations.length > 0 ? (
+          <ul className="space-y-1.5">
+            {entity.integrations.map((int, i) => (
+              <li key={i} className="text-sm text-foreground">
+                {int.name}
+                {int.type ? ` (${int.type})` : ''}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">—</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MapPage() {
   const { envId } = useParams<{ envId: string }>();
   const navigate = useNavigate();
@@ -171,6 +313,7 @@ export function MapPage() {
   const [showCosts, setShowCosts] = useState(true);
   const [showOwnership, setShowOwnership] = useState(true);
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
+  const [viewingEntity, setViewingEntity] = useState<EditingEntity | null>(null);
   const [editingEntity, setEditingEntity] = useState<EditingEntity | null>(null);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [nodePanelDefaultHandles, setNodePanelDefaultHandles] = useState<{ sourceHandle: HandlePosition; targetHandle: HandlePosition }>({
@@ -294,25 +437,28 @@ export function MapPage() {
       setNodePanelDefaultHandles(getBestHandles(catPos, newPos));
       return;
     }
-    // Leaf node: open right sidebar (edit) and optionally select first edge for connection panel
+    // Leaf node: open right sidebar in view mode (read-only); user can click Edit to edit
     if (isLeafNodeId(nodeId)) {
       const node = nodes.find((n) => n.id === nodeId);
       if (node?.data) {
         const meta = node.data._entityMeta as {
           display_metadata?: string;
+          repository_url?: string;
           urls?: { name: string; link: string }[];
           integrations?: { name: string; type?: string }[];
         } | undefined;
-        setEditingEntity({
+        setViewingEntity({
           id: nodeId,
           name: (node.data.label as string) ?? nodeId,
           type: (node.data._entityType as EntityType) ?? 'service',
           icon: (node.data.icon as string) ?? 'server',
           status: (node.data.status as 'healthy' | 'warning' | 'critical') ?? 'healthy',
           metadata: (node.data.metadata as string) ?? meta?.display_metadata,
+          repository_url: meta?.repository_url,
           urls: meta?.urls,
           integrations: meta?.integrations,
         });
+        setEditingEntity(null);
       }
       setEdges((prev) => {
         const nodeEdges = prev.filter((e) => e.source === nodeId || e.target === nodeId);
@@ -386,6 +532,7 @@ export function MapPage() {
             position,
             parentEdgeSourceHandle: sh,
             parentEdgeTargetHandle: th,
+            repository_url: payload.repository_url,
             urls: payload.urls,
             integrations: payload.integrations,
           },
@@ -445,6 +592,7 @@ export function MapPage() {
             icon: payload.icon,
             display_metadata: payload.metadata,
             position: node.position,
+            repository_url: payload.repository_url,
             urls: payload.urls,
             integrations: payload.integrations,
           },
@@ -464,6 +612,7 @@ export function MapPage() {
                       ...existingMeta,
                       icon: payload.icon,
                       display_metadata: payload.metadata,
+                      repository_url: payload.repository_url,
                       urls: payload.urls,
                       integrations: payload.integrations,
                     },
@@ -754,7 +903,7 @@ export function MapPage() {
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col bg-background">
+    <div className="relative flex min-w-0 h-full min-h-0 flex-1 flex-col bg-background">
       <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-border bg-card/95 px-6 py-4 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-1 rounded-md hover:opacity-90" />
@@ -772,7 +921,7 @@ export function MapPage() {
               </SelectTrigger>
               <SelectContent>
                 {environments.map((env) => (
-                  <SelectItem key={env.id} value={env.id}>
+                  <SelectItem key={env.id} value={env.id || `env-${env.name ?? 'unknown'}`}>
                     {env.name}
                   </SelectItem>
                 ))}
@@ -940,10 +1089,11 @@ export function MapPage() {
         onAddCategory={handleAddCategory}
       />
       <Sheet
-        open={selectedNode !== null || editingEntity !== null}
+        open={selectedNode !== null || editingEntity !== null || viewingEntity !== null}
         onOpenChange={(open) => {
           if (!open) {
             setSelectedNode(null);
+            setViewingEntity(null);
             setEditingEntity(null);
           }
         }}
@@ -952,26 +1102,65 @@ export function MapPage() {
           side="right"
           className="flex w-full flex-col sm:max-w-md"
         >
-          <SheetHeader className="flex-shrink-0 border-b border-border pb-4">
-            <SheetTitle>
-              {editingEntity ? 'Edit component' : selectedNode ? 'Add component' : 'Component'}
+          <SheetHeader className="flex flex-shrink-0 flex-row items-center justify-between gap-3 border-b border-border pb-4">
+            <SheetTitle className="min-w-0 truncate">
+              {editingEntity
+                ? 'Edit component'
+                : viewingEntity
+                  ? viewingEntity.name
+                  : selectedNode
+                    ? 'Add component'
+                    : 'Component'}
             </SheetTitle>
+            {viewingEntity && !editingEntity && (
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="shrink-0 gap-1.5 font-medium"
+                aria-label="Edit component"
+                onClick={() => setEditingEntity(viewingEntity)}
+              >
+                <Pencil className="h-3.5 w-3.5" aria-hidden />
+                Edit
+              </Button>
+            )}
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-hidden">
-            {(selectedNode !== null || editingEntity !== null) && (
+            {editingEntity !== null ? (
               <AddNodeForm
-                parentNode={selectedNode}
+                parentNode={null}
                 editingEntity={editingEntity}
                 onClose={() => {
                   setSelectedNode(null);
+                  setViewingEntity(null);
+                  setEditingEntity(null);
+                }}
+                onBackToView={() => setEditingEntity(null)}
+                onAddNode={handleAddNode}
+                onUpdateNode={handleUpdateNode}
+                defaultSourceHandle={nodePanelDefaultHandles.sourceHandle}
+                defaultTargetHandle={nodePanelDefaultHandles.targetHandle}
+                organizationId={orgId ?? undefined}
+              />
+            ) : viewingEntity !== null ? (
+              <NodeViewPanel entity={viewingEntity} />
+            ) : selectedNode !== null ? (
+              <AddNodeForm
+                parentNode={selectedNode}
+                editingEntity={null}
+                onClose={() => {
+                  setSelectedNode(null);
+                  setViewingEntity(null);
                   setEditingEntity(null);
                 }}
                 onAddNode={handleAddNode}
                 onUpdateNode={handleUpdateNode}
                 defaultSourceHandle={nodePanelDefaultHandles.sourceHandle}
                 defaultTargetHandle={nodePanelDefaultHandles.targetHandle}
+                organizationId={orgId ?? undefined}
               />
-            )}
+            ) : null}
           </div>
         </SheetContent>
       </Sheet>

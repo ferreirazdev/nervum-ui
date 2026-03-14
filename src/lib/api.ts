@@ -75,6 +75,7 @@ export type EntityMetadata = {
   position?: { x: number; y: number };
   parentEdgeSourceHandle?: string;
   parentEdgeTargetHandle?: string;
+  repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
 };
@@ -231,6 +232,10 @@ export type ApiGitHubRepo = {
   html_url: string;
 };
 
+// ─── GCloud (stored services, Cloud Run, Cloud SQL, Compute) ───────────────────
+// Re-exported from api/gcloud.ts for backward compatibility; use @/lib/api/gcloud for explicit provider imports.
+export * from './api/gcloud';
+
 // ─── Dashboard (GitHub / GCloud proxy) ─────────────────────────────────────────
 // Shapes match mockDashboard.ts for drop-in replacement.
 
@@ -298,7 +303,7 @@ export type DashboardGCloudServiceHealth = {
 
 type ApiError = { error: string };
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api/v1${path}`, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...init?.headers },

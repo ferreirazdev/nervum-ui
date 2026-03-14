@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/features/auth';
-import { getMemberOnboardingCompleted, setMemberOnboardingCompleted } from '@/lib/onboarding';
 import { updateUser, getOrganization } from '@/lib/api';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -17,7 +16,7 @@ import { AppLogo } from '@/app/components/AppLogo';
 
 export function MemberOnboardingPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [orgName, setOrgName] = useState<string>('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,7 +35,7 @@ export function MemberOnboardingPage() {
 
   if (authLoading || !user) return null;
 
-  if (getMemberOnboardingCompleted()) {
+  if (user.onboarding) {
     navigate('/dashboard', { replace: true });
     return null;
   }
@@ -51,10 +50,8 @@ export function MemberOnboardingPage() {
     setError(null);
     setLoading(true);
     try {
-      if (displayName.trim()) {
-        await updateUser(user.id, { name: displayName.trim() });
-      }
-      setMemberOnboardingCompleted();
+      await updateUser(user.id, { name: displayName.trim() || user.name, onboarding: true });
+      await refreshUser();
       navigate('/dashboard', { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save');

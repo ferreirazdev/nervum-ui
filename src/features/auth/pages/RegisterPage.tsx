@@ -69,7 +69,7 @@ export function RegisterPage() {
       const user = await register(values.name, values.email, values.password);
       navigate(user.onboarding ? '/dashboard' : '/onboarding');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Registration failed');
+      setError('Registration failed. This email may already be in use.');
     }
   }
 

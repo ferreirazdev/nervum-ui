@@ -16,6 +16,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { SystemGraphVisualization } from '../components/SystemGraphVisualization';
+import { LandingIntegrations } from '../components/LandingIntegrations';
 import { FeatureCard } from '../components/FeatureCard';
 import { AutomationFlow } from '../components/AutomationFlow';
 import { BeforeAfter } from '../components/BeforeAfter';
@@ -115,6 +116,9 @@ export function LandingPage() {
                 Book a Demo
               </Button>
             </motion.div>
+
+            {/* Integrates with strip */}
+            <LandingIntegrations />
 
             {/* Terminal wrapper around system graph */}
             <motion.div

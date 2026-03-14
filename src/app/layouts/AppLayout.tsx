@@ -6,7 +6,8 @@ import { Toaster } from '@/app/components/ui/sonner';
 
 function isDashboardRoute(pathname: string): boolean {
   if (pathname === '/dashboard' || pathname === '/organization' || pathname === '/profile' || pathname === '/teams') return true;
-  if (pathname === '/users' || pathname === '/integrations') return true;
+  if (pathname === '/users' || pathname === '/integrations' || pathname === '/repositories') return true;
+  if (pathname.startsWith('/gcloud')) return true;
   return pathname === '/environments' || pathname.startsWith('/environments/');
 }
 

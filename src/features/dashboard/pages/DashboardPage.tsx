@@ -439,8 +439,8 @@ export function DashboardPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {storedRepos.map((r) => (
-                      <SelectItem key={r.id} value={r.full_name}>
-                        {r.full_name}
+                      <SelectItem key={r.id} value={r.full_name || String(r.id)}>
+                        {r.full_name || String(r.id)}
                       </SelectItem>
                     ))}
                   </SelectContent>
