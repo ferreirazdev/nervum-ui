@@ -78,7 +78,7 @@ export function LoginPage() {
         </Link>
         <div className="flex flex-1 flex-col items-center justify-center">
           <div className="w-full max-w-md">
-            <Card className="w-full border-border bg-card">
+            <Card className="w-full rounded-xl border border-border bg-card shadow-sm">
               <CardHeader className="space-y-1 text-center">
                 <CardTitle className="text-2xl">Sign in</CardTitle>
                 <CardDescription>Enter your email and password to sign in.</CardDescription>

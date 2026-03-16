@@ -79,7 +79,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarCollapsibleSection label="GCloud" className="mt-6">
+        <SidebarCollapsibleSection label="GCloud" className="mt-6" defaultOpen={false}>
           <SidebarMenu className="space-y-1">
             <SidebarMenuItem>
               <SidebarMenuSubButton
@@ -107,7 +107,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarCollapsibleSection>
-        <SidebarCollapsibleSection label="Settings" className="mt-6">
+        <SidebarCollapsibleSection label="Settings" className="mt-6" defaultOpen={false}>
           <SidebarMenu className="space-y-1">
             <SidebarMenuItem>
               <SidebarMenuSubButton

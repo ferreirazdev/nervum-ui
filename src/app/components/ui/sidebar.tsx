@@ -391,7 +391,7 @@ function SidebarFooterBlock({
         size="icon"
         aria-label={actionLabel}
         onClick={onAction}
-        className="size-10 shrink-0 rounded-xl bg-sidebar-accent-strong text-sidebar-foreground shadow-lg transition-colors hover:bg-indigo-600 hover:text-white"
+        className="size-10 shrink-0 rounded-xl bg-sidebar-accent-strong text-sidebar-foreground shadow-lg transition-colors hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
       >
         <Plus className="size-5" />
       </Button>

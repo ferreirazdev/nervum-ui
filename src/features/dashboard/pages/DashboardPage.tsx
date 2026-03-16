@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import {
-  AlertTriangle,
   Bug,
+  Cloud,
   Database,
-  DollarSign,
   ExternalLink,
   GitBranch,
-  Globe,
-  LayoutGrid,
-  Cloud,
   Server,
-  ShieldAlert,
-  UsersRound,
   User,
+  UsersRound,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import {
@@ -40,8 +35,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/app/components/ui/card';
-import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from '@/app/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import {
   Select,
@@ -80,28 +79,39 @@ function formatRelativeTime(iso: string): string {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    healthy: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
-    warning: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
-    critical: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
-    // GitHub PR / merge
+    healthy:
+      'bg-emerald-100 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400',
+    warning:
+      'bg-amber-100 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/30 dark:text-amber-400',
+    critical:
+      'bg-rose-100 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-400',
     open: 'bg-primary/10 border-primary/30 text-primary',
-    merged: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
+    merged:
+      'bg-emerald-100 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400',
     closed: 'bg-muted border-border text-muted-foreground',
-    // GCloud build / deploy
-    success: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
-    failure: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
-    failed: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
-    working: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
-    deploying: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
-    active: 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400',
-    // Log severity
+    success:
+      'bg-emerald-100 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400',
+    failure:
+      'bg-rose-100 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-400',
+    failed:
+      'bg-rose-100 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-400',
+    working:
+      'bg-amber-100 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/30 dark:text-amber-400',
+    deploying:
+      'bg-amber-100 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/30 dark:text-amber-400',
+    active:
+      'bg-emerald-100 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400',
     info: 'bg-primary/10 border-primary/30 text-primary',
-    error: 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400',
-    degraded: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
+    error:
+      'bg-rose-100 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-400',
+    degraded:
+      'bg-amber-100 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/30 dark:text-amber-400',
     unknown: 'bg-muted border-border text-muted-foreground',
   };
   return (
-    <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase ${styles[status] ?? styles.healthy}`}>
+    <span
+      className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${styles[status] ?? styles.healthy}`}
+    >
       {status}
     </span>
   );
@@ -271,292 +281,127 @@ export function DashboardPage() {
   }, [user?.organization_id]);
 
   return (
-    <div className="grid grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:gap-10">
-      {/* Left column: title, environments, teams & users */}
-      <div className="min-w-0 space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            System-at-a-glance
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Real-time operational overview of {org ? `${org.name} ` : ''}Infrastructure.
-          </p>
-        </div>
-
+    <div className="grid grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:gap-8">
+      {/* Left column: GitHub, GCloud, Sentry */}
+      <div className="min-w-0 space-y-6 lg:col-span-6">
         <section>
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Environments Health</h2>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="size-9">
-                <LayoutGrid className="size-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="size-9">
-                <LayoutGrid className="size-4" />
-              </Button>
-            </div>
-          </div>
-          {envsLoading ? (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-64 animate-pulse rounded-2xl border border-border bg-muted/30" />
-              ))}
-            </div>
-          ) : environments.length === 0 ? (
-            <Card className="rounded-2xl border-dashed border-border bg-muted/20 py-12">
-              <CardContent className="text-center">
-                <p className="text-sm text-muted-foreground">No environments yet.</p>
-                <Button asChild className="mt-4">
-                  <Link to="/environments">Create your first environment</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {environments.slice(0, 4).map((env) => (
-                <Card
-                  key={env.id}
-                  className="group overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm transition-colors hover:border-primary/50"
-                >
-                  <CardContent className="p-6">
-                    <div className="mb-6 flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">{env.name}</CardTitle>
-                          <StatusBadge status={env.status} />
-                        </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {env.last_deployment_text ?? `Last updated: ${formatRelativeTime(env.updated_at ?? env.created_at)}`}
-                        </p>
-                      </div>
-                      <Link
-                        to={`/environments/${env.id}`}
-                        className="rounded p-1 text-muted-foreground transition-colors hover:text-primary"
-                        aria-label="Open map"
-                      >
-                        <ExternalLink className="size-5" />
-                      </Link>
-                    </div>
-                    {(env.cpu_percent != null || env.memory_gb != null || env.latency_ms != null) && (
-                      <div className="mb-6 grid grid-cols-3 gap-4">
-                        {env.cpu_percent != null && (
-                          <div className="rounded-xl bg-muted/50 p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">CPU Usage</p>
-                            <div className="mt-1 flex items-end justify-between">
-                              <span className="text-lg font-bold">{env.cpu_percent}%</span>
-                              <span className={`text-[10px] ${env.cpu_status === 'Stable' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                {env.cpu_status}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        {env.memory_gb != null && (
-                          <div className="rounded-xl bg-muted/50 p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Memory</p>
-                            <div className="mt-1 flex items-end justify-between">
-                              <span className="text-lg font-bold">{env.memory_gb}<small className="text-[10px]">GB</small></span>
-                              <span className="text-[10px] text-emerald-500">{env.memory_status}</span>
-                            </div>
-                          </div>
-                        )}
-                        {env.latency_ms != null && (
-                          <div className="rounded-xl bg-muted/50 p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Latency</p>
-                            <div className="mt-1 flex items-end justify-between">
-                              <span className="text-lg font-bold">{env.latency_ms}<small className="text-[10px]">ms</small></span>
-                              <span className="text-[10px] text-muted-foreground">{env.latency_status}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex gap-4">
-                        <span className="flex items-center gap-1">
-                          <Server className="size-3.5" />
-                          {env.nodes_count ?? env.services_count ?? 0} Nodes
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Database className="size-3.5" />
-                          {env.databases_count ?? 0} DBs
-                        </span>
-                      </div>
-                      <Button asChild size="sm">
-                        <Link to={`/environments/${env.id}`}>
-                          Open Map
-                          <ExternalLink className="ml-1 size-3.5" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {user?.organization_id && (
-          <section>
-            <h2 className="mb-4 text-xl font-bold">Teams & Users</h2>
-            <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <UsersRound className="size-5 text-muted-foreground" />
-                      <h3 className="text-sm font-semibold">Teams</h3>
-                    </div>
-                    {teams.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No teams yet.</p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {teams.slice(0, 4).map((t) => (
-                          <li key={t.id} className="flex items-center gap-2 text-sm">
-                            <span className={t.icon ? 'text-base' : ''}>{t.icon || '👥'}</span>
-                            <span className="font-medium text-foreground">{t.name}</span>
-                          </li>
-                        ))}
-                        {teams.length > 4 && (
-                          <li className="text-xs text-muted-foreground">+{teams.length - 4} more</li>
-                        )}
-                      </ul>
-                    )}
-                    <Button asChild variant="outline" size="sm" className="mt-3">
-                      <Link to="/teams">Manage teams</Link>
-                    </Button>
-                  </div>
-                  <div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <User className="size-5 text-muted-foreground" />
-                      <h3 className="text-sm font-semibold">Members</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {membersCount} {membersCount === 1 ? 'member' : 'members'} in this organization
-                    </p>
-                    <Button asChild variant="outline" size="sm" className="mt-3">
-                      <Link to="/organization">Manage members</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-      </div>
-
-      {/* Right column: GitHub and GCloud */}
-      <div className="min-w-0 space-y-8">
-        <section>
-          <h2 className="mb-4 text-xl font-bold">Last logs GitHub</h2>
           {storedRepos.length === 0 ? (
-            <Card className="rounded-2xl border-dashed border-border bg-muted/20">
+            <Card className="rounded-xl border-2 border-dashed border-border bg-muted/20">
               <CardContent className="py-12 text-center">
-                <p className="text-sm text-muted-foreground">No repositories added. Add repositories to see commits, PRs, and merges here.</p>
-                <Button asChild className="mt-4" variant="secondary" size="sm">
+                <p className="text-sm text-muted-foreground mb-4">No repositories connected.</p>
+                <Button asChild variant="secondary" size="sm">
                   <Link to="/repositories">Add repositories</Link>
                 </Button>
               </CardContent>
             </Card>
           ) : (
-          <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <GitBranch className="size-5 text-muted-foreground shrink-0" />
-                  <CardTitle className="text-lg">Recent activity</CardTitle>
+            <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[320px] flex flex-col">
+              <CardHeader className="border-b border-border bg-muted/50 px-5 py-4 shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <GitBranch className="size-5 text-muted-foreground shrink-0" />
+                    <CardTitle className="text-lg font-bold">GitHub Activity</CardTitle>
+                  </div>
+                  <Select value={selectedRepo ?? ''} onValueChange={(v) => setSelectedRepo(v || null)}>
+                    <SelectTrigger className="w-auto min-w-[160px] text-xs h-8">
+                      <SelectValue placeholder="Select repo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {storedRepos.map((r) => (
+                        <SelectItem key={r.id} value={r.full_name || String(r.id)}>
+                          {r.full_name || String(r.id)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select value={selectedRepo ?? ''} onValueChange={(v) => setSelectedRepo(v || null)}>
-                  <SelectTrigger className="w-auto min-w-[180px]">
-                    <SelectValue placeholder="Select repo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {storedRepos.map((r) => (
-                      <SelectItem key={r.id} value={r.full_name || String(r.id)}>
-                        {r.full_name || String(r.id)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Tabs defaultValue="commits" className="w-full">
-                <TabsList className="mb-4 w-full justify-start rounded-xl">
-                  <TabsTrigger value="commits">Commits</TabsTrigger>
-                  <TabsTrigger value="prs">PRs</TabsTrigger>
-                  <TabsTrigger value="merges">Merges</TabsTrigger>
-                </TabsList>
-                <TabsContent value="commits" className="mt-0">
-                  {githubCommits.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-                      No commits to show.
-                    </p>
-                  ) : (
-                  <ul className="space-y-3">
-                    {githubCommits.map((c) => (
-                      <li key={c.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{c.message}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            <code className="rounded bg-muted px-1">{c.hash}</code> · {c.repo} · {c.author}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(c.created_at)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  )}
-                </TabsContent>
-                <TabsContent value="prs" className="mt-0">
-                  {githubPRs.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-                      No pull requests to show.
-                    </p>
-                  ) : (
-                  <ul className="space-y-3">
-                    {githubPRs.map((pr) => (
-                      <li key={pr.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">#{pr.number} {pr.title}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{pr.author}</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <StatusBadge status={pr.state} />
-                          <span className="text-xs text-muted-foreground">{formatRelativeTime(pr.created_at)}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  )}
-                </TabsContent>
-                <TabsContent value="merges" className="mt-0">
-                  {githubMerges.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-                      No merges to show.
-                    </p>
-                  ) : (
-                  <ul className="space-y-3">
-                    {githubMerges.map((m) => (
-                      <li key={m.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{m.title}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {m.sourceBranch} → {m.targetBranch} · {m.author}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(m.created_at)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="pt-0 px-2 pt-2 min-h-0 max-h-[260px] overflow-y-auto">
+                <Tabs defaultValue="commits" className="w-full">
+                  <TabsList className="mb-0 w-full justify-start rounded-none border-0 border-b border-border bg-transparent p-0 gap-0 h-auto shrink-0">
+                    <TabsTrigger
+                      value="commits"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-3 py-2 text-xs"
+                    >
+                      Commits
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="prs"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-3 py-2 text-xs"
+                    >
+                      PRs
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="merges"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-3 py-2 text-xs"
+                    >
+                      Merges
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="commits" className="mt-0">
+                    {githubCommits.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-sm text-muted-foreground">No commits to show.</p>
+                    ) : (
+                      <ul className="divide-y divide-border">
+                        {githubCommits.map((c) => (
+                          <li key={c.id} className="p-4 transition-colors hover:bg-muted/50">
+                            <div className="flex justify-between items-start mb-1 gap-2">
+                              <p className="text-sm font-medium text-foreground truncate flex-1">{c.message}</p>
+                              <span className="text-[10px] font-mono shrink-0 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">{c.hash}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span><span className="font-semibold text-foreground/80">@{c.author}</span> in <span className="italic">{c.repo}</span></span>
+                              <span>{formatRelativeTime(c.created_at)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="prs" className="mt-0">
+                    {githubPRs.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-sm text-muted-foreground">No pull requests to show.</p>
+                    ) : (
+                      <ul className="divide-y divide-border">
+                        {githubPRs.map((pr) => (
+                          <li key={pr.id} className="p-4 transition-colors hover:bg-muted/50">
+                            <div className="flex justify-between items-start gap-2">
+                              <p className="text-sm font-medium text-foreground truncate flex-1">#{pr.number} {pr.title}</p>
+                              <StatusBadge status={pr.state} />
+                            </div>
+                            <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
+                              <span>{pr.author}</span>
+                              <span>{formatRelativeTime(pr.created_at)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="merges" className="mt-0">
+                    {githubMerges.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-sm text-muted-foreground">No merges to show.</p>
+                    ) : (
+                      <ul className="divide-y divide-border">
+                        {githubMerges.map((m) => (
+                          <li key={m.id} className="p-4 transition-colors hover:bg-muted/50">
+                            <p className="text-sm font-medium text-foreground truncate">{m.title}</p>
+                            <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
+                              <span>{m.sourceBranch} → {m.targetBranch} · {m.author}</span>
+                              <span>{formatRelativeTime(m.created_at)}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           )}
         </section>
 
         <section>
-          <h2 className="mb-4 text-xl font-bold">GCloud</h2>
           {gcloudNeedsConfig && (
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
               <p className="text-sm text-amber-800 dark:text-amber-200">
@@ -567,125 +412,141 @@ export function DashboardPage() {
               </Button>
             </div>
           )}
-          <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <Cloud className="size-5 text-muted-foreground" />
-                <CardTitle className="text-lg">Build, deploy &amp; logs</CardTitle>
+          <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[320px] flex flex-col">
+            <CardHeader className="border-b border-border px-5 py-4 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Cloud className="size-5 text-muted-foreground" />
+                  <CardTitle className="text-lg font-bold">Google Cloud</CardTitle>
+                </div>
+                {!gcloudNeedsConfig && (
+                  <span className="text-[10px] font-bold uppercase rounded border border-emerald-100 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400 px-2 py-0.5">
+                    Connected
+                  </span>
+                )}
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 p-4 min-h-0 max-h-[260px] overflow-y-auto">
               <Tabs defaultValue="build" className="w-full">
-                <TabsList className="mb-4 w-full justify-start rounded-xl">
-                  <TabsTrigger value="build">Build</TabsTrigger>
-                  <TabsTrigger value="deploy">Deploy</TabsTrigger>
-                  <TabsTrigger value="logs">Logs</TabsTrigger>
-                  <TabsTrigger value="healthy">Services healthy</TabsTrigger>
-                </TabsList>
+                <div className="bg-muted/30 px-2 pt-2 -mt-px shrink-0">
+                  <TabsList className="mb-0 w-full justify-start rounded-none border-0 bg-transparent p-0 gap-1 h-auto">
+                    <TabsTrigger
+                      value="build"
+                      className="rounded-t-md border border-b-0 border-border bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs"
+                    >
+                      Builds
+                    </TabsTrigger>
+                    <TabsTrigger value="deploy" className="rounded-t-md border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs text-muted-foreground data-[state=active]:text-foreground">
+                      Deploys
+                    </TabsTrigger>
+                    <TabsTrigger value="logs" className="rounded-t-md border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs text-muted-foreground data-[state=active]:text-foreground">
+                      Logs
+                    </TabsTrigger>
+                    <TabsTrigger value="healthy" className="rounded-t-md border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs text-muted-foreground data-[state=active]:text-foreground">
+                      Service Health
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
                 <TabsContent value="build" className="mt-0">
                   {gcloudNeedsConfig ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       Configure your GCP project ID in Integrations to see builds here.
                     </p>
                   ) : gcloudBuilds.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       No builds to show.
                     </p>
                   ) : (
-                  <ul className="space-y-3">
-                    {gcloudBuilds.map((b) => (
-                      <li key={b.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-mono text-sm">{b.buildId}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{b.trigger}</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          {b.durationSeconds != null && (
-                            <span className="text-xs text-muted-foreground">{b.durationSeconds}s</span>
-                          )}
-                          <StatusBadge status={b.status} />
-                          <span className="text-xs text-muted-foreground">{formatRelativeTime(b.created_at)}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-3">
+                      {gcloudBuilds.map((b) => (
+                        <li key={b.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-mono text-muted-foreground">{b.buildId}</p>
+                            <p className="font-bold text-foreground mt-0.5">{b.trigger}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="block font-bold text-emerald-600 dark:text-emerald-400">{b.status}</span>
+                            {b.durationSeconds != null && <span className="text-muted-foreground">{b.durationSeconds}s</span>}
+                            <span className="block text-muted-foreground">{formatRelativeTime(b.created_at)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </TabsContent>
                 <TabsContent value="deploy" className="mt-0">
                   {gcloudNeedsConfig ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       Configure your GCP project ID in Integrations to see deploys here.
                     </p>
                   ) : gcloudDeploys.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       No deploys to show.
                     </p>
                   ) : (
-                  <ul className="space-y-3">
-                    {gcloudDeploys.map((d) => (
-                      <li key={d.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{d.serviceName}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{d.revision} · {d.region}</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <StatusBadge status={d.status} />
-                          <span className="text-xs text-muted-foreground">{formatRelativeTime(d.created_at)}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-3">
+                      {gcloudDeploys.map((d) => (
+                        <li key={d.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-foreground">{d.serviceName}</p>
+                            <p className="text-muted-foreground mt-0.5">{d.revision} · {d.region}</p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <StatusBadge status={d.status} />
+                            <span className="text-muted-foreground">{formatRelativeTime(d.created_at)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </TabsContent>
                 <TabsContent value="logs" className="mt-0">
                   {gcloudNeedsConfig ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       Configure your GCP project ID in Integrations to see logs here.
                     </p>
                   ) : gcloudLogs.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       No logs to show.
                     </p>
                   ) : (
-                  <ul className="space-y-3">
-                    {gcloudLogs.map((l) => (
-                      <li key={l.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm">{l.message}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{l.service}</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <StatusBadge status={l.severity} />
-                          <span className="text-xs text-muted-foreground">{formatRelativeTime(l.created_at)}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-3">
+                      {gcloudLogs.map((l) => (
+                        <li key={l.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-foreground">{l.message}</p>
+                            <p className="text-muted-foreground mt-0.5">{l.service}</p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <StatusBadge status={l.severity} />
+                            <span className="text-muted-foreground">{formatRelativeTime(l.created_at)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </TabsContent>
                 <TabsContent value="healthy" className="mt-0">
                   {gcloudNeedsConfig ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       Configure your GCP project ID in Integrations to see service health here.
                     </p>
                   ) : gcloudServicesHealth.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                       No service health data to show.
                     </p>
                   ) : (
-                  <ul className="space-y-3">
-                    {gcloudServicesHealth.map((s) => (
-                      <li key={s.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{s.name}</p>
-                          {s.detail != null && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">{s.detail}</p>
-                          )}
-                        </div>
-                        <StatusBadge status={s.status} />
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-3">
+                      {gcloudServicesHealth.map((s) => (
+                        <li key={s.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-foreground">{s.name}</p>
+                            {s.detail != null && <p className="text-muted-foreground mt-0.5">{s.detail}</p>}
+                          </div>
+                          <StatusBadge status={s.status} />
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </TabsContent>
               </Tabs>
@@ -693,7 +554,6 @@ export function DashboardPage() {
           </Card>
         </section>
         <section>
-          <h2 className="mb-4 text-xl font-bold">Sentry</h2>
           {sentryNeedsConfig ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
               <p className="text-sm text-amber-800 dark:text-amber-200">
@@ -704,36 +564,61 @@ export function DashboardPage() {
               </Button>
             </div>
           ) : (
-            <Card className="overflow-hidden rounded-2xl border-border bg-card/80 backdrop-blur-sm">
-              <CardHeader className="pb-2">
+            <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[320px] flex flex-col">
+              <CardHeader
+                className="border-b border-border px-5 py-4 text-white shrink-0"
+                style={{ backgroundColor: 'var(--sentry-header)' }}
+              >
                 <div className="flex items-center gap-2">
-                  <Bug className="size-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">Error tracking</CardTitle>
+                  <Bug className="size-5 shrink-0" />
+                  <CardTitle className="text-lg font-bold">Sentry: Error Tracking</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 min-h-0 max-h-[260px] overflow-y-auto">
                 <Tabs defaultValue="issues" className="w-full">
-                  <TabsList className="mb-4 w-full justify-start rounded-xl">
-                    <TabsTrigger value="issues">Issues</TabsTrigger>
-                    <TabsTrigger value="stats">Stats</TabsTrigger>
-                    <TabsTrigger value="releases">Releases</TabsTrigger>
-                  </TabsList>
+                  <div className="border-b border-border bg-muted/50 px-4 py-2 flex gap-4">
+                    <TabsList className="mb-0 w-full justify-start rounded-none border-0 bg-transparent p-0 gap-4 h-auto">
+                      <TabsTrigger
+                        value="issues"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-bold px-0 pb-1 text-xs"
+                      >
+                        Issues
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="stats"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-bold px-0 pb-1 text-xs text-muted-foreground data-[state=active]:text-foreground"
+                      >
+                        Stats
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="releases"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-bold px-0 pb-1 text-xs text-muted-foreground data-[state=active]:text-foreground"
+                      >
+                        Releases
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
                   <TabsContent value="issues" className="mt-0">
                     {sentryIssues.length === 0 ? (
-                      <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                         No unresolved issues.
                       </p>
                     ) : (
-                      <ul className="space-y-3">
+                      <ul className="divide-y divide-border">
                         {sentryIssues.map((issue) => (
-                          <li key={issue.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                          <li key={issue.id} className="flex gap-4 p-4">
+                            <div className="mt-1 size-2 rounded-full bg-rose-500 shrink-0" aria-hidden />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium">{issue.title}</p>
-                              <p className="mt-0.5 text-xs text-muted-foreground">{issue.project} · {issue.count} events</p>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                              <StatusBadge status={issue.level} />
-                              <span className="text-xs text-muted-foreground">{formatRelativeTime(issue.last_seen)}</span>
+                              <div className="flex justify-between items-start gap-2">
+                                <p className="text-sm font-bold text-foreground truncate">{issue.title}</p>
+                                <span className="text-[10px] font-medium rounded border border-rose-100 bg-rose-50 text-rose-700 dark:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-400 px-1.5 py-0.5 shrink-0">
+                                  {issue.count} Events
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                                <span>{issue.project}</span>
+                                <span className="italic">{formatRelativeTime(issue.last_seen)}</span>
+                              </div>
                             </div>
                           </li>
                         ))}
@@ -749,7 +634,7 @@ export function DashboardPage() {
                         </div>
                         <div className="rounded-xl bg-muted/50 p-4 text-center">
                           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Unresolved</p>
-                          <p className="mt-1 text-2xl font-bold text-red-500">{sentryStats.unresolved_issues}</p>
+                          <p className="mt-1 text-2xl font-bold text-rose-500">{sentryStats.unresolved_issues}</p>
                         </div>
                         <div className="rounded-xl bg-muted/50 p-4 text-center">
                           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Projects</p>
@@ -757,20 +642,20 @@ export function DashboardPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                         No stats available.
                       </p>
                     )}
                   </TabsContent>
                   <TabsContent value="releases" className="mt-0">
                     {sentryReleases.length === 0 ? (
-                      <p className="rounded-xl border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
                         No releases to show.
                       </p>
                     ) : (
                       <ul className="space-y-3">
                         {sentryReleases.map((r) => (
-                          <li key={r.id} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                          <li key={r.id} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-muted/50 px-4 py-3">
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-mono text-sm font-medium">{r.version}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
@@ -780,7 +665,7 @@ export function DashboardPage() {
                             </div>
                             <div className="flex shrink-0 items-center gap-2">
                               {r.new_issues > 0 && (
-                                <span className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-red-600 dark:text-red-400">
+                                <span className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-rose-600 dark:text-rose-400">
                                   +{r.new_issues} issues
                                 </span>
                               )}
@@ -796,6 +681,156 @@ export function DashboardPage() {
             </Card>
           )}
         </section>
+
+        {/* Footer */}
+        <footer className="border-t border-border pt-8 mt-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+              All systems operational
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} Nervum. Managed by Platform Team.
+            </p>
+          </div>
+        </footer>
+      </div>
+
+      {/* Right column: header, environments, teams & users */}
+      <div className="min-w-0 space-y-8 lg:col-span-6">
+        {/* Page header */}
+        
+
+        <section>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Environments Health</h2>
+            {!envsLoading && (
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Active: {environments.length} Total
+              </span>
+            )}
+          </div>
+          {envsLoading ? (
+            <div className="mb-8 rounded-xl border border-border bg-card p-5">
+              <div className="flex justify-between">
+                <div className="h-5 w-32 skeleton-pulse rounded" />
+                <div className="h-5 w-16 skeleton-pulse rounded" />
+              </div>
+              <div className="mt-3 h-5 w-full max-w-md skeleton-pulse rounded" />
+              <div className="mt-4 h-9 w-full max-w-[140px] skeleton-pulse rounded" />
+            </div>
+          ) : environments.length === 0 ? (
+            <Card className="rounded-xl border-2 border-dashed border-border bg-muted/20 py-8">
+              <CardContent className="flex flex-col items-center text-center">
+                <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
+                  <Server className="size-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-foreground">No environments yet</h3>
+                <p className="mt-1 text-sm text-muted-foreground mb-4">
+                  Start by creating your first infrastructure environment.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/environments">Create Environment</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="mb-8 w-full relative">
+              <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+                <CarouselContent className="-ml-0">
+                  {environments.map((env) => (
+                    <CarouselItem key={env.id} className="pl-0">
+                      <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+                        <CardContent className="p-5">
+                          {/* Line 1: name + status */}
+                          <div className="flex items-center justify-between gap-3">
+                            <h3 className="font-bold text-foreground truncate">{env.name}</h3>
+                            <StatusBadge status={env.status} />
+                          </div>
+                          {/* Line 2: nodes, DB, optional metrics/updated */}
+                          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            <span>Nodes: <strong className="text-foreground">{env.nodes_count ?? env.services_count ?? 0}</strong></span>
+                            <span>DB: <strong className="text-foreground">{env.databases_count ?? 0}</strong></span>
+                            {(env.cpu_percent != null || env.memory_gb != null || env.latency_ms != null) && (
+                              <span className="flex items-center gap-2">
+                                {env.cpu_percent != null && <span>CPU {env.cpu_percent}%</span>}
+                                {env.memory_gb != null && <span>{env.memory_gb}GB</span>}
+                                {env.latency_ms != null && <span>{env.latency_ms}ms</span>}
+                              </span>
+                            )}
+                            <span>
+                              {env.last_deployment_text ?? (env.updated_at ?? env.created_at ? `Updated ${formatRelativeTime(env.updated_at ?? env.created_at!)}` : '')}
+                            </span>
+                          </div>
+                          <Button asChild className="mt-4 w-full sm:w-auto" size="sm">
+                            <Link to={`/environments/${env.id}`}>
+                              Open Map
+                              <ExternalLink className="ml-1 size-3.5" />
+                            </Link>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+              {/* Right-edge shadow to suggest more content (infinite scroll) */}
+              {environments.length > 1 && (
+                <div
+                  className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background/80 to-transparent rounded-r-xl"
+                  aria-hidden
+                />
+              )}
+            </div>
+          )}
+        </section>
+
+        {user?.organization_id && (
+          <section>
+            <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+              <div className="flex items-center justify-between border-b border-border px-6 py-4">
+                <h2 className="font-semibold text-foreground">Teams & Users</h2>
+                <span className="text-sm text-muted-foreground">{membersCount} active {membersCount === 1 ? 'member' : 'members'}</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+                <div className="p-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Teams</h3>
+                  {teams.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No teams yet.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {teams.slice(0, 4).map((t) => (
+                        <li key={t.id} className="flex items-center gap-2 text-sm">
+                          <span className={t.icon ? 'text-base' : ''}>{t.icon || '👥'}</span>
+                          <span className="font-medium text-foreground">{t.name}</span>
+                        </li>
+                      ))}
+                      {teams.length > 4 && (
+                        <li className="text-sm font-medium text-primary">
+                          <Link to="/teams">+{teams.length - 4} more teams</Link>
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                  <Button asChild variant="ghost" size="sm" className="mt-4 h-auto p-0 text-xs font-semibold uppercase tracking-tight text-muted-foreground hover:text-foreground">
+                    <Link to="/teams">Manage Teams →</Link>
+                  </Button>
+                </div>
+                <div className="p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Directory</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {membersCount} {membersCount === 1 ? 'member' : 'members'} in this organization
+                    </p>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+                    <Link to="/organization">Manage Members</Link>
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </section>
+        )}
       </div>
     </div>
   );

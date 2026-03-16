@@ -53,7 +53,10 @@ export function DashboardLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-border bg-sidebar/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-sidebar/80">
+        <header
+          data-layout="topbar"
+          className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b px-4 backdrop-blur"
+        >
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="h-6" />
           <h1 className="text-lg font-semibold text-foreground">{pageTitle}</h1>
