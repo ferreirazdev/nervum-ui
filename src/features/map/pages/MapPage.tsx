@@ -13,7 +13,7 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Save, Link2, Trash2, ExternalLink, Pencil, Github } from 'lucide-react';
+import { Save, Link2, Trash2, ExternalLink, Pencil, Github, Cloud } from 'lucide-react';
 import SystemNode from '@/app/components/SystemNode';
 import { CommandBar } from '@/app/components/CommandBar';
 import { Controls } from '@/app/components/Controls';
@@ -292,6 +292,27 @@ function NodeViewPanel({ entity }: { entity: EditingEntity }) {
           <p className="text-sm text-muted-foreground">—</p>
         )}
       </div>
+
+      {/* GCloud Services */}
+      {entity.linked_gcloud_services && entity.linked_gcloud_services.length > 0 && (
+        <div className={SECTION_CARD_CLASS}>
+          <h3 className={SECTION_LABEL_CLASS}>GCloud Services</h3>
+          <ul className="space-y-1.5">
+            {entity.linked_gcloud_services.map((svc) => (
+              <li key={svc.id} className="flex items-center gap-2 text-sm text-foreground">
+                <Cloud className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="font-medium">{svc.service_name}</span>
+                {svc.location && (
+                  <span className="text-xs text-muted-foreground">{svc.location}</span>
+                )}
+                <span className="rounded bg-muted px-1 py-0.5 text-xs text-muted-foreground">
+                  {svc.kind}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -446,6 +467,7 @@ export function MapPage() {
           repository_url?: string;
           urls?: { name: string; link: string }[];
           integrations?: { name: string; type?: string }[];
+          linked_gcloud_services?: { id: string; kind: string; service_name: string; location?: string }[];
           health_check_url?: string;
           health_check_method?: string;
           health_check_headers?: Record<string, string>;
@@ -461,6 +483,7 @@ export function MapPage() {
           repository_url: meta?.repository_url,
           urls: meta?.urls,
           integrations: meta?.integrations,
+          linked_gcloud_services: meta?.linked_gcloud_services,
           health_check_url: meta?.health_check_url,
           health_check_method: meta?.health_check_method,
           health_check_headers: meta?.health_check_headers,
@@ -543,6 +566,7 @@ export function MapPage() {
             repository_url: payload.repository_url,
             urls: payload.urls,
             integrations: payload.integrations,
+            linked_gcloud_services: payload.linked_gcloud_services,
           },
           health_check_url: payload.health_check_url || undefined,
           health_check_method: payload.health_check_method || undefined,
@@ -607,6 +631,7 @@ export function MapPage() {
             repository_url: payload.repository_url,
             urls: payload.urls,
             integrations: payload.integrations,
+            linked_gcloud_services: payload.linked_gcloud_services,
           },
           health_check_url: payload.health_check_url || undefined,
           health_check_method: payload.health_check_method || undefined,
@@ -631,6 +656,7 @@ export function MapPage() {
                       repository_url: payload.repository_url,
                       urls: payload.urls,
                       integrations: payload.integrations,
+                      linked_gcloud_services: payload.linked_gcloud_services,
                     },
                   },
                 }

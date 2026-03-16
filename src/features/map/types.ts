@@ -30,6 +30,7 @@ export interface AddNodePayload {
   repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
+  linked_gcloud_services?: { id: string; kind: string; service_name: string; location?: string }[];
   health_check_url?: string;
   health_check_method?: string;
   health_check_headers?: Record<string, string>;
@@ -49,6 +50,7 @@ export interface EditingEntity {
   repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
+  linked_gcloud_services?: { id: string; kind: string; service_name: string; location?: string }[];
   health_check_url?: string;
   health_check_method?: string;
   health_check_headers?: Record<string, string>;

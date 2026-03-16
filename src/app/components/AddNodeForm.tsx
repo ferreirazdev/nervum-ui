@@ -1,4 +1,4 @@
-import { Plus, ArrowRight, Trash2, ExternalLink, Github, Activity } from 'lucide-react';
+import { Plus, ArrowRight, Trash2, ExternalLink, Github, Activity, Cloud } from 'lucide-react';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
 import {
@@ -31,6 +31,7 @@ import {
   type ApiGitHubRepo,
   type ApiIntegration,
 } from '@/lib/api';
+import { getStoredServices, type ApiStoredService } from '@/lib/api/gcloud';
 
 export interface AddNodeFormProps {
   parentNode: SelectedNode | null;
@@ -146,6 +147,11 @@ export function AddNodeForm({
   const [integrationsList, setIntegrationsList] = useState<ApiIntegration[]>([]);
   const [loadingStored, setLoadingStored] = useState(false);
   const [loadingGitHub, setLoadingGitHub] = useState(false);
+  const [linkedGCloudServices, setLinkedGCloudServices] = useState<
+    { id: string; kind: string; service_name: string; location?: string }[]
+  >([]);
+  const [storedServices, setStoredServices] = useState<ApiStoredService[]>([]);
+  const [loadingGCloudServices, setLoadingGCloudServices] = useState(false);
 
   const defaultType = useMemo(
     () =>
@@ -167,6 +173,7 @@ export function AddNodeForm({
       setRepositoryUrl(editingEntity.repository_url ?? '');
       setUrls(editingEntity.urls ?? []);
       setIntegrations(editingEntity.integrations ?? []);
+      setLinkedGCloudServices(editingEntity.linked_gcloud_services ?? []);
       setHealthCheckUrl(editingEntity.health_check_url ?? '');
       setHealthCheckMethod(editingEntity.health_check_method ?? 'GET');
       setHealthCheckHeaders(
@@ -227,6 +234,16 @@ export function AddNodeForm({
   }, [organizationId]);
 
   const hasGitHub = integrationsList.some((i) => i.provider === 'github');
+  const hasGCloud = integrationsList.some((i) => i.provider === 'gcloud');
+
+  useEffect(() => {
+    if (!organizationId || !hasGCloud) { setStoredServices([]); return; }
+    setLoadingGCloudServices(true);
+    getStoredServices(organizationId)
+      .then(setStoredServices)
+      .catch(() => setStoredServices([]))
+      .finally(() => setLoadingGCloudServices(false));
+  }, [organizationId, hasGCloud]);
 
   const handleFetchFromGitHub = useCallback(() => {
     if (!organizationId || !hasGitHub) return;
@@ -251,6 +268,7 @@ export function AddNodeForm({
     setRepositoryUrl('');
     setUrls([]);
     setIntegrations([]);
+    setLinkedGCloudServices([]);
     setHealthCheckUrl('');
     setHealthCheckMethod('GET');
     setHealthCheckHeaders([]);
@@ -322,6 +340,7 @@ export function AddNodeForm({
       repository_url: repoUrl,
       urls: payloadUrls.length ? payloadUrls : undefined,
       integrations: payloadIntegrations.length ? payloadIntegrations : undefined,
+      linked_gcloud_services: linkedGCloudServices.length ? linkedGCloudServices : undefined,
       ...healthCheckPayload,
     };
     if (isEditMode && editingEntity && onUpdateNode) {
@@ -805,6 +824,87 @@ export function AddNodeForm({
                 </Button>
               </div>
             </div>
+
+            <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Cloud className="h-3.5 w-3.5" />
+                GCloud Services
+              </h3>
+              {!hasGCloud ? (
+                <p className="text-sm text-muted-foreground">
+                  <Link to="/integrations" className="text-primary underline hover:no-underline">
+                    Connect GCloud in Integrations
+                  </Link>{' '}
+                  to link tracked services.
+                </p>
+              ) : loadingGCloudServices ? (
+                <p className="text-sm text-muted-foreground">Loading services…</p>
+              ) : storedServices.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No tracked services yet.</p>
+              ) : (
+                <>
+                  {linkedGCloudServices.length > 0 && (
+                    <ul className="space-y-1">
+                      {linkedGCloudServices.map((svc) => (
+                        <li key={svc.id} className="flex items-center gap-2 text-sm text-foreground">
+                          <Cloud className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          <span className="font-medium flex-1 min-w-0 truncate">{svc.service_name}</span>
+                          {svc.location && (
+                            <span className="text-xs text-muted-foreground">{svc.location}</span>
+                          )}
+                          <span className="rounded bg-muted px-1 py-0.5 text-xs text-muted-foreground">
+                            {svc.kind}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0 h-6 w-6 text-muted-foreground hover:text-destructive"
+                            onClick={() =>
+                              setLinkedGCloudServices((prev) => prev.filter((s) => s.id !== svc.id))
+                            }
+                            aria-label="Remove service"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                    value=""
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      if (!id) return;
+                      const svc = storedServices.find((s) => s.id === id);
+                      if (!svc) return;
+                      setLinkedGCloudServices((prev) => [
+                        ...prev,
+                        {
+                          id: svc.id,
+                          kind: svc.kind ?? '',
+                          service_name: svc.service_name,
+                          location: svc.location,
+                        },
+                      ]);
+                    }}
+                  >
+                    <option value="">Add a service…</option>
+                    {storedServices
+                      .filter((s) => !linkedGCloudServices.some((l) => l.id === s.id))
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.service_name}
+                          {s.location ? ` (${s.location})` : ''}
+                          {s.kind ? ` — ${s.kind}` : ''}
+                        </option>
+                      ))}
+                  </select>
+                </>
+              )}
+            </div>
+
             {!isEditMode && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">

@@ -78,6 +78,7 @@ export type EntityMetadata = {
   repository_url?: string;
   urls?: { name: string; link: string }[];
   integrations?: { name: string; type?: string }[];
+  linked_gcloud_services?: { id: string; kind: string; service_name: string; location?: string }[];
 };
 
 export type ApiEntity = {
