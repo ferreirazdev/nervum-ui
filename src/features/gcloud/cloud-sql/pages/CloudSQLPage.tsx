@@ -9,6 +9,9 @@ import {
   CardTitle,
 } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import { StatusBadge } from '@/app/components/ui/status-badge';
+import { formatRelativeTime } from '@/lib/format';
 import { useAuth } from '@/features/auth';
 import {
   getStoredServices,
@@ -53,6 +56,13 @@ export function CloudSQLPage() {
   const [backupRuns, setBackupRuns] = useState<Record<string, GCloudSQLBackupRun[]>>({});
   const [loadingDetail, setLoadingDetail] = useState<Record<string, boolean>>({});
 
+  const [overviewInstances, setOverviewInstances] = useState<GCloudSQLInstance[]>([]);
+  const [overviewSelectedName, setOverviewSelectedName] = useState<string | null>(null);
+  const [overviewDatabases, setOverviewDatabases] = useState<GCloudSQLDatabase[]>([]);
+  const [overviewBackups, setOverviewBackups] = useState<GCloudSQLBackupRun[]>([]);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewNeedsConfig, setOverviewNeedsConfig] = useState(false);
+
   const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
   const storedKeys = new Set(stored.map((s) => storedKey(s.service_name, s.location)));
 
@@ -77,6 +87,48 @@ export function CloudSQLPage() {
       .then(setIntegrations)
       .catch(() => setIntegrations([]));
   }, [orgId]);
+
+  useEffect(() => {
+    if (!orgId || !hasGCloud) {
+      setOverviewInstances([]);
+      setOverviewSelectedName(null);
+      setOverviewNeedsConfig(false);
+      return;
+    }
+    setOverviewLoading(true);
+    setOverviewNeedsConfig(false);
+    getGCloudSQLInstances(orgId)
+      .then((res) => {
+        const list = res.items ?? [];
+        setOverviewInstances(list);
+        const first = list[0];
+        setOverviewSelectedName(first ? instanceShortName(first) : null);
+      })
+      .catch((e) => {
+        setOverviewInstances([]);
+        setOverviewSelectedName(null);
+        if (e instanceof Error && e.message.includes('project_id')) setOverviewNeedsConfig(true);
+      })
+      .finally(() => setOverviewLoading(false));
+  }, [orgId, hasGCloud]);
+
+  useEffect(() => {
+    if (!orgId || !overviewSelectedName) {
+      setOverviewDatabases([]);
+      setOverviewBackups([]);
+      return;
+    }
+    Promise.all([
+      getGCloudSQLDatabases(orgId, overviewSelectedName),
+      getGCloudSQLBackupRuns(orgId, overviewSelectedName, { maxResults: 10 }),
+    ]).then(([dbRes, backupRes]) => {
+      setOverviewDatabases(dbRes.items ?? []);
+      setOverviewBackups(backupRes.items ?? []);
+    }).catch(() => {
+      setOverviewDatabases([]);
+      setOverviewBackups([]);
+    });
+  }, [orgId, overviewSelectedName]);
 
   const handleAdd = async (instanceName: string, region?: string, instanceType?: string) => {
     if (!orgId) return;
@@ -172,6 +224,133 @@ export function CloudSQLPage() {
         >
           {message.text}
         </div>
+      )}
+
+      {hasGCloud && overviewNeedsConfig && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            Google Cloud is connected but not fully configured. Set your project ID to see Cloud SQL data.
+          </p>
+          <Button asChild size="sm">
+            <Link to="/integrations">Configure GCloud</Link>
+          </Button>
+        </div>
+      )}
+
+      {hasGCloud && (
+        <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[360px] flex flex-col">
+          <CardHeader className="border-b border-border px-5 py-4 shrink-0">
+            <div className="flex items-center gap-2">
+              <Database className="size-5 text-muted-foreground shrink-0" />
+              <CardTitle className="text-lg font-bold">Cloud SQL overview</CardTitle>
+              {!overviewNeedsConfig && overviewInstances.length > 0 && (
+                <span className="text-[10px] font-bold uppercase rounded border border-emerald-100 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400 px-2 py-0.5">
+                  Connected
+                </span>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 p-4 min-h-0 max-h-[300px] overflow-y-auto">
+            {overviewNeedsConfig ? (
+              <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                Configure your GCP project ID in Integrations to see Cloud SQL data.
+              </p>
+            ) : overviewLoading ? (
+              <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                Loading…
+              </p>
+            ) : (
+              <Tabs defaultValue="instances" className="w-full">
+                <div className="bg-muted/30 px-2 pt-2 -mt-px shrink-0">
+                  <TabsList className="mb-0 w-full justify-start rounded-none border-0 bg-transparent p-0 gap-1 h-auto">
+                    <TabsTrigger value="instances" className="rounded-t-md border border-b-0 border-border bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs">
+                      Instances
+                    </TabsTrigger>
+                    <TabsTrigger value="databases" className="rounded-t-md border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs text-muted-foreground data-[state=active]:text-foreground">
+                      Databases
+                    </TabsTrigger>
+                    <TabsTrigger value="backups" className="rounded-t-md border border-b-0 border-transparent data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:font-bold px-3 py-1.5 text-xs text-muted-foreground data-[state=active]:text-foreground">
+                      Backups
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                <TabsContent value="instances" className="mt-0">
+                  {overviewInstances.length === 0 ? (
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      No Cloud SQL instances found.
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {overviewInstances.map((inst, i) => {
+                        const shortName = instanceShortName(inst);
+                        const selected = overviewSelectedName === shortName;
+                        return (
+                          <li
+                            key={inst.name ?? i}
+                            className={`flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs cursor-pointer transition-colors hover:bg-muted/80 ${selected ? 'ring-1 ring-primary' : ''}`}
+                            onClick={() => setOverviewSelectedName(shortName)}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-foreground truncate">{shortName}</p>
+                              <p className="text-muted-foreground mt-0.5">{inst.databaseVersion ?? '—'} · {inst.region ?? '—'}</p>
+                            </div>
+                            {inst.state && <StatusBadge status={inst.state.toLowerCase()} />}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </TabsContent>
+                <TabsContent value="databases" className="mt-0">
+                  {!overviewSelectedName ? (
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      Select an instance to see its databases.
+                    </p>
+                  ) : overviewDatabases.length === 0 ? (
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      No databases found for <strong>{overviewSelectedName}</strong>.
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {overviewDatabases.map((db, i) => (
+                        <li key={db.name ?? i} className="flex items-center gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                          <Database className="size-3.5 shrink-0 text-muted-foreground" />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-foreground">{db.name}</p>
+                            {db.instance != null && <p className="text-muted-foreground mt-0.5">{db.instance}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabsContent>
+                <TabsContent value="backups" className="mt-0">
+                  {!overviewSelectedName ? (
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      Select an instance to see its backups.
+                    </p>
+                  ) : overviewBackups.length === 0 ? (
+                    <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                      No backups found for <strong>{overviewSelectedName}</strong>.
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {overviewBackups.map((bk, i) => (
+                        <li key={bk.id ?? i} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-mono text-muted-foreground">#{bk.id}</p>
+                            {bk.startTime && <p className="text-foreground mt-0.5">{formatRelativeTime(bk.startTime)}</p>}
+                          </div>
+                          {bk.status && <StatusBadge status={bk.status.toLowerCase()} />}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabsContent>
+              </Tabs>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       <Card>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { BookMarked, Github, Trash2 } from 'lucide-react';
+import { BookMarked, GitBranch, Github, Trash2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -9,6 +9,16 @@ import {
   CardTitle,
 } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import { StatusBadge } from '@/app/components/ui/status-badge';
+import { formatRelativeTime } from '@/lib/format';
 import { useAuth } from '@/features/auth';
 import {
   getStoredRepositories,
@@ -16,9 +26,15 @@ import {
   deleteStoredRepository,
   getGitHubRepos,
   getIntegrations,
+  getDashboardGitHubCommits,
+  getDashboardGitHubPRs,
+  getDashboardGitHubMerges,
   type ApiStoredRepository,
   type ApiGitHubRepo,
   type ApiIntegration,
+  type DashboardGitHubCommit,
+  type DashboardGitHubPR,
+  type DashboardGitHubMerge,
 } from '@/lib/api';
 
 export function RepositoriesPage() {
@@ -33,20 +49,49 @@ export function RepositoriesPage() {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  const [githubCommits, setGitHubCommits] = useState<DashboardGitHubCommit[]>([]);
+  const [githubPRs, setGitHubPRs] = useState<DashboardGitHubPR[]>([]);
+  const [githubMerges, setGitHubMerges] = useState<DashboardGitHubMerge[]>([]);
+
   const hasGitHub = integrations.some((i) => i.provider === 'github');
   const storedFullNames = new Set(stored.map((r) => r.full_name));
 
   useEffect(() => {
     if (!orgId) {
       setStored([]);
+      setSelectedRepo(null);
       setLoadingStored(false);
       return;
     }
     getStoredRepositories(orgId)
-      .then(setStored)
-      .catch(() => setStored([]))
+      .then((list) => {
+        setStored(list);
+        setSelectedRepo((prev) => {
+          if (list.length === 0) return null;
+          const first = list[0].full_name;
+          return prev && list.some((r) => r.full_name === prev) ? prev : first;
+        });
+      })
+      .catch(() => {
+        setStored([]);
+        setSelectedRepo(null);
+      })
       .finally(() => setLoadingStored(false));
   }, [orgId]);
+
+  useEffect(() => {
+    if (!orgId || !selectedRepo) return;
+    getDashboardGitHubCommits(orgId, selectedRepo)
+      .then(setGitHubCommits)
+      .catch(() => setGitHubCommits([]));
+    getDashboardGitHubPRs(orgId, selectedRepo)
+      .then(setGitHubPRs)
+      .catch(() => setGitHubPRs([]));
+    getDashboardGitHubMerges(orgId, selectedRepo)
+      .then(setGitHubMerges)
+      .catch(() => setGitHubMerges([]));
+  }, [orgId, selectedRepo]);
 
   useEffect(() => {
     if (!orgId) {
@@ -220,6 +265,112 @@ export function RepositoriesPage() {
           )}
         </CardContent>
       </Card>
+
+      {hasGitHub && stored.length > 0 && (
+        <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[360px] flex flex-col">
+          <CardHeader className="border-b border-border bg-muted/50 px-5 py-4 shrink-0">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <GitBranch className="size-5 text-muted-foreground shrink-0" />
+                <CardTitle className="text-lg font-bold">GitHub Activity</CardTitle>
+              </div>
+              <Select value={selectedRepo ?? ''} onValueChange={(v) => setSelectedRepo(v || null)}>
+                <SelectTrigger className="w-auto min-w-[160px] text-xs h-8">
+                  <SelectValue placeholder="Select repo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {stored.map((r) => (
+                    <SelectItem key={r.id} value={r.full_name || String(r.id)}>
+                      {r.full_name || String(r.id)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 px-2 pt-2 min-h-0 max-h-[300px] overflow-y-auto">
+            <Tabs defaultValue="commits" className="w-full">
+              <TabsList className="mb-0 w-full justify-start rounded-none border-0 border-b border-border bg-transparent p-0 gap-0 h-auto shrink-0">
+                <TabsTrigger
+                  value="commits"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-3 py-2 text-xs"
+                >
+                  Commits
+                </TabsTrigger>
+                <TabsTrigger
+                  value="prs"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-3 py-2 text-xs"
+                >
+                  PRs
+                </TabsTrigger>
+                <TabsTrigger
+                  value="merges"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-3 py-2 text-xs"
+                >
+                  Merges
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="commits" className="mt-0">
+                {githubCommits.length === 0 ? (
+                  <p className="px-4 py-6 text-center text-sm text-muted-foreground">No commits to show.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {githubCommits.map((c) => (
+                      <li key={c.id} className="p-4 transition-colors hover:bg-muted/50">
+                        <div className="flex justify-between items-start mb-1 gap-2">
+                          <p className="text-sm font-medium text-foreground truncate flex-1">{c.message}</p>
+                          <span className="text-[10px] font-mono shrink-0 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">{c.hash}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                          <span><span className="font-semibold text-foreground/80">@{c.author}</span> in <span className="italic">{c.repo}</span></span>
+                          <span>{formatRelativeTime(c.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TabsContent>
+              <TabsContent value="prs" className="mt-0">
+                {githubPRs.length === 0 ? (
+                  <p className="px-4 py-6 text-center text-sm text-muted-foreground">No pull requests to show.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {githubPRs.map((pr) => (
+                      <li key={pr.id} className="p-4 transition-colors hover:bg-muted/50">
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="text-sm font-medium text-foreground truncate flex-1">#{pr.number} {pr.title}</p>
+                          <StatusBadge status={pr.state} />
+                        </div>
+                        <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
+                          <span>{pr.author}</span>
+                          <span>{formatRelativeTime(pr.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TabsContent>
+              <TabsContent value="merges" className="mt-0">
+                {githubMerges.length === 0 ? (
+                  <p className="px-4 py-6 text-center text-sm text-muted-foreground">No merges to show.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {githubMerges.map((m) => (
+                      <li key={m.id} className="p-4 transition-colors hover:bg-muted/50">
+                        <p className="text-sm font-medium text-foreground truncate">{m.title}</p>
+                        <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
+                          <span>{m.sourceBranch} → {m.targetBranch} · {m.author}</span>
+                          <span>{formatRelativeTime(m.created_at)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

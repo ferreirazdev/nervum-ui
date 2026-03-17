@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
+import { StatusBadge } from '@/app/components/ui/status-badge';
 import { useAuth } from '@/features/auth';
 import {
   getStoredServices,
@@ -57,6 +58,10 @@ export function ComputePage() {
   const [loadingDetail, setLoadingDetail] = useState<Record<string, boolean>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const [overviewInstances, setOverviewInstances] = useState<GCloudComputeInstance[]>([]);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewNeedsConfig, setOverviewNeedsConfig] = useState(false);
+
   const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
   const instanceKey = (inst: GCloudComputeInstance) => `${zoneFromInstance(inst)}/${inst.name ?? ''}`;
   const storedKeys = new Set(stored.map((s) => storedKey(s.service_name, s.location ?? '')));
@@ -82,6 +87,23 @@ export function ComputePage() {
       .then(setIntegrations)
       .catch(() => setIntegrations([]));
   }, [orgId]);
+
+  useEffect(() => {
+    if (!orgId || !hasGCloud) {
+      setOverviewInstances([]);
+      setOverviewNeedsConfig(false);
+      return;
+    }
+    setOverviewLoading(true);
+    setOverviewNeedsConfig(false);
+    getGCloudComputeInstances(orgId)
+      .then((res) => setOverviewInstances(flattenAggregatedItems(res.items)))
+      .catch((e) => {
+        setOverviewInstances([]);
+        if (e instanceof Error && e.message.includes('project_id')) setOverviewNeedsConfig(true);
+      })
+      .finally(() => setOverviewLoading(false));
+  }, [orgId, hasGCloud]);
 
   const machineTypeShort = (inst: GCloudComputeInstance): string => {
     const mt = inst.machineType;
@@ -217,6 +239,69 @@ export function ComputePage() {
         >
           {message.text}
         </div>
+      )}
+
+      {hasGCloud && overviewNeedsConfig && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            Google Cloud is connected but not fully configured. Set your project ID to see Compute Engine instances.
+          </p>
+          <Button asChild size="sm">
+            <Link to="/integrations">Configure GCloud</Link>
+          </Button>
+        </div>
+      )}
+
+      {hasGCloud && (
+        <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[360px] flex flex-col">
+          <CardHeader className="border-b border-border px-5 py-4 shrink-0">
+            <div className="flex items-center gap-2">
+              <Cpu className="size-5 text-muted-foreground shrink-0" />
+              <CardTitle className="text-lg font-bold">Compute Engine overview</CardTitle>
+              {!overviewNeedsConfig && overviewInstances.length > 0 && (
+                <span className="text-[10px] font-bold uppercase rounded border border-emerald-100 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400 px-2 py-0.5">
+                  Connected
+                </span>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 p-4 min-h-0 max-h-[300px] overflow-y-auto">
+            {overviewNeedsConfig ? (
+              <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                Configure your GCP project ID in Integrations to see Compute Engine instances.
+              </p>
+            ) : overviewLoading ? (
+              <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                Loading…
+              </p>
+            ) : overviewInstances.length === 0 ? (
+              <p className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                No Compute Engine instances found.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {overviewInstances.map((inst) => {
+                  const name = inst.name ?? '';
+                  const zone = zoneFromInstance(inst);
+                  const status = (inst.status ?? 'UNKNOWN').toLowerCase();
+                  const machine = inst.machineType ? String(inst.machineType).split('/').pop() : '—';
+                  return (
+                    <li
+                      key={instanceKey(inst)}
+                      className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/50 p-3 text-xs"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground truncate font-mono">{name}</p>
+                        <p className="text-muted-foreground mt-0.5">{zone} · {machine}</p>
+                      </div>
+                      <StatusBadge status={status} />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       <Card>
