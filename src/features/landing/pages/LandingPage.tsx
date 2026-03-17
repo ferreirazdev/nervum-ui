@@ -88,8 +88,8 @@ export function LandingPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="font-mono-landing text-5xl md:text-7xl font-bold tracking-tighter mb-6 uppercase"
             >
-              See your system <br />
-              <span className="text-primary">as it really is</span>
+              No more bookmarks. <br />
+              <span className="text-primary">One place for everything.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -97,8 +97,8 @@ export function LandingPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
             >
-              The engineering intelligence platform that automatically maps your infrastructure,
-              identifies bottlenecks, and accelerates your incident response.
+              Stop switching between GCP Console, GitHub, and Sentry. Nervum centralizes your cloud infrastructure,
+              repositories, and application errors into a single management view — always in sync, always actionable.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -143,9 +143,9 @@ export function LandingPage() {
                   <SystemGraphVisualization />
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:right-4 md:translate-x-0 flex items-center justify-center pointer-events-none">
                     <div className="bg-surface border border-primary/50 p-4 rounded text-xs font-mono">
-                      <span className="text-primary">STATUS:</span> OPERATIONAL<br />
-                      <span className="text-primary">NODES:</span> 142 ACTIVE<br />
-                      <span className="text-primary">LATENCY:</span> 12ms
+                      <span className="text-primary">TOOLS REPLACED:</span> GCP + GitHub + Sentry<br />
+                      <span className="text-primary">ENVIRONMENTS:</span> 4 active<br />
+                      <span className="text-primary">LAST DEPLOY:</span> 3m ago
                     </div>
                   </div>
                 </div>
@@ -160,16 +160,16 @@ export function LandingPage() {
               className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
             >
               <div className="flex flex-col items-center p-6 border-x border-border">
-                <div className="font-mono-landing text-3xl text-primary mb-2">100%</div>
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">System visibility</div>
+                <div className="font-mono-landing text-3xl text-primary mb-2">3 min</div>
+                <div className="text-sm uppercase tracking-widest text-muted-foreground">Time to connect your stack</div>
               </div>
               <div className="flex flex-col items-center p-6 border-x border-border">
-                <div className="font-mono-landing text-3xl text-primary mb-2">10x</div>
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">Faster response</div>
+                <div className="font-mono-landing text-3xl text-primary mb-2">1 tab</div>
+                <div className="text-sm uppercase tracking-widest text-muted-foreground">For GCP, GitHub &amp; Sentry</div>
               </div>
               <div className="flex flex-col items-center p-6 border-x border-border">
-                <div className="font-mono-landing text-3xl text-primary mb-2">Zero</div>
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">Tool replacement</div>
+                <div className="font-mono-landing text-3xl text-primary mb-2">0 agents</div>
+                <div className="text-sm uppercase tracking-widest text-muted-foreground">No instrumentation needed</div>
               </div>
             </motion.div>
           </div>
@@ -186,23 +186,23 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">The Engineering Blind Spot</h2>
+            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">The Bookmark Graveyard</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              As your system grows, so does the chaos. Knowledge is scattered, context is missing,
-              and every incident becomes a treasure hunt.
+              Your team has 12 browser tabs open before they can answer one question. Context lives in different tools,
+              and every incident starts with a scavenger hunt.
             </p>
           </motion.div>
 
           <BeforeAfter
             before={[
-              { title: 'Outdated Documentation', text: "Wiki pages that haven't been touched in years while the system evolved daily." },
-              { title: 'Siloed Data Islands', text: "Checking 15 different dashboards just to find the owner of a failing microservice." },
-              { title: 'Invisible Costs', text: "Unexplained cloud spikes that take weeks to trace back to a specific commit." },
+              { title: 'GCP Console', text: "Every VM, database, and Cloud Run service lives in a different part of the console. Good luck getting the full picture." },
+              { title: 'GitHub, separately', text: "Open a second tab to see what just got deployed. Cross-reference commits manually. Repeat for every incident." },
+              { title: 'Sentry, in another tab', text: "An error is firing. But which service? Which team? Which commit caused it? Time to open more tabs." },
             ]}
             after={[
-              { title: 'Auto-Generated Mapping', text: 'Real-time infrastructure discovery that updates with every single deployment.' },
-              { title: 'Live Context', text: 'Unified view of code, ownership, and health in a single interactive graph.' },
-              { title: 'Proactive Insights', text: 'Automated anomaly detection that alerts the right team before things break.' },
+              { title: 'Your Cloud, here', text: "Browse Compute VMs, Cloud SQL databases, and Cloud Run services — start, stop, and inspect them without leaving Nervum." },
+              { title: 'Your repos, here', text: "Commits, pull requests, and merges from every connected GitHub repository in a unified activity feed." },
+              { title: 'Your errors, here', text: "Sentry alerts linked to the service and team that owns them. Full context, zero tab-switching." },
             ]}
           />
         </div>
@@ -219,7 +219,7 @@ export function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Integrate in minutes</h2>
-            <p className="text-muted-foreground">Zero agents, zero instrumentation, zero friction.</p>
+            <p className="text-muted-foreground">Connect your tools once. Manage everything from one place, forever.</p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -235,7 +235,7 @@ export function LandingPage() {
               </div>
               <h4 className="font-mono-landing text-lg uppercase mb-3">01. Connect</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Link your cloud providers, git repositories, and observability tools via secure API.
+                Link Google Cloud, GitHub, and Sentry via OAuth in under 3 minutes. No agents, no YAML, no SDK to install.
               </p>
             </motion.div>
 
@@ -251,7 +251,7 @@ export function LandingPage() {
               </div>
               <h4 className="font-mono-landing text-lg uppercase mb-3">02. Map</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Our engine automatically builds a high-fidelity graph of your entire engineering ecosystem.
+                Nervum builds an interactive map of your environments — services, databases, repos, and team ownership — and keeps it live.
               </p>
             </motion.div>
 
@@ -265,9 +265,9 @@ export function LandingPage() {
               <div className="w-16 h-16 border border-border bg-muted mx-auto flex items-center justify-center mb-6 text-primary">
                 <Zap className="w-8 h-8" />
               </div>
-              <h4 className="font-mono-landing text-lg uppercase mb-3">03. Act</h4>
+              <h4 className="font-mono-landing text-lg uppercase mb-3">03. Manage</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Use actionable insights to reduce incidents, optimize spend, and ship faster.
+                Start VMs, review SQL backups, trace a Sentry error to its commit, and check deployment status. All from one tab.
               </p>
             </motion.div>
           </div>
@@ -284,9 +284,9 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Platform Capabilities</h2>
+            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Everything in one place</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Built for engineering teams who need clarity, not complexity.
+              Replace the tabs. Nervum surfaces the data you need from every tool, in one management view.
             </p>
           </motion.div>
 
@@ -294,48 +294,48 @@ export function LandingPage() {
             <FeatureCard
               icon={GitBranch}
               category="Architecture"
-              title="Live System Graph"
-              description="A dynamic, navigable map of all microservices, databases, and third-party dependencies."
+              title="Environment Maps"
+              description="Visual, interactive graphs of your services, databases, and Cloud Run revisions — per environment, always current."
               delay={0}
               gridCell
             />
             <FeatureCard
               icon={Activity}
               category="Observability"
-              title="Health Status Monitoring"
-              description="Aggregate metrics from Datadog, New Relic, and Prometheus into a single health score."
+              title="Unified Activity Feed"
+              description="GitHub commits, PRs, Cloud Build deploys, and Sentry errors. One feed, instead of four open tabs."
               delay={0.1}
               gridCell
             />
             <FeatureCard
               icon={Eye}
-              category="Efficiency"
-              title="One-Click Context"
-              description="Jump from a failing service directly to the relevant Slack channel or GitHub Repo."
+              category="Cloud Ops"
+              title="GCP Management"
+              description="Browse and operate Compute VMs, Cloud SQL, and Cloud Run without opening the GCP Console. Start/stop, inspect, audit — right here."
               delay={0.2}
               gridCell
             />
             <FeatureCard
               icon={DollarSign}
-              category="Finance"
-              title="Cost Visibility"
-              description="Tie cloud infrastructure costs directly to specific engineering teams and services."
+              category="Ownership"
+              title="Team Ownership"
+              description="Assign teams to services and environments. Every engineer knows who owns what — no Slack pinging required."
               delay={0.3}
               gridCell
             />
             <FeatureCard
               icon={UserCheck}
-              category="Operations"
-              title="Ownership Intelligence"
-              description={'Never ask "who owns this?" again. Auto-identify owners based on commit history.'}
+              category="Security"
+              title="Access Control"
+              description="Per-environment RBAC. Control who sees which infrastructure. No over-sharing, no under-sharing."
               delay={0.4}
               gridCell
             />
             <FeatureCard
               icon={Zap}
-              category="Scale"
-              title="Smart Automations"
-              description="Trigger workflows automatically based on system state changes or health thresholds."
+              category="AI"
+              title="AI Assistant"
+              description="Ask your stack questions in plain English. The built-in AI knows your environments, repos, and health status."
               delay={0.5}
               gridCell
             />
@@ -353,38 +353,38 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Automated Response</h2>
-            <p className="text-muted-foreground">Pre-built intelligence for common engineering operational tasks.</p>
+            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Replace your daily tabs</h2>
+            <p className="text-muted-foreground">These are the workflows your team runs every day — now without switching tools.</p>
           </motion.div>
 
           <div className="space-y-12">
             <AutomationFlow
-              title="Service Health"
-              description="Detect degradation and notify the on-call engineer with full incident context."
+              title="Incident Triage"
+              description="A Sentry error fires. See the service, the owning team, and the last GitHub commit — without opening a single extra tab."
               steps={[
-                { label: 'DEGRADE' },
-                { label: 'FETCH_OWNER' },
-                { label: 'PAGERDUTY_ALERT' },
+                { label: 'SENTRY_ERROR' },
+                { label: 'MAP_SERVICE' },
+                { label: 'FIND_OWNER' },
               ]}
               delay={0}
             />
             <AutomationFlow
-              title="Cost Anomaly"
-              description="Identify sudden spend increases and map them to recent infrastructure changes."
+              title="Deploy Verification"
+              description="A Cloud Build job finishes. Confirm which GitHub commit triggered it, which environment it hit, and whether the service is healthy."
               steps={[
-                { label: 'COST_SPIKE' },
-                { label: 'CORRELATE_TERRAFORM' },
-                { label: 'FINOPS_REPORT' },
+                { label: 'CLOUD_BUILD' },
+                { label: 'LINK_COMMIT' },
+                { label: 'CHECK_HEALTH' },
               ]}
               delay={0.1}
             />
             <AutomationFlow
-              title="Database Risk"
-              description="Flag unencrypted databases or exposed endpoints before they reach production."
+              title="Pre-Release Audit"
+              description="Before a release: verify Cloud SQL backups, check all VM states, and confirm environment status — from one screen."
               steps={[
-                { label: 'SCAN_DB' },
-                { label: 'POLICY_CHECK' },
-                { label: 'BLOCK_DEPLOY' },
+                { label: 'FETCH_INSTANCES' },
+                { label: 'CHECK_BACKUPS' },
+                { label: 'CONFIRM_DEPLOY' },
               ]}
               delay={0.2}
             />
@@ -402,10 +402,10 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Built for Modern Tech Orgs</h2>
+            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">For teams tired of tab management</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Perfect for startups and scale-ups who need enterprise visibility without enterprise
-              complexity.
+              Whether you&apos;re a solo CTO or a 50-engineer team, Nervum gives you a single management view
+              across your entire software stack.
             </p>
           </motion.div>
 
@@ -422,7 +422,7 @@ export function LandingPage() {
               </div>
               <h3 className="font-mono-landing text-xl font-bold uppercase mb-4">CTOs & Tech Leads</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Get a bird&apos;s eye view of your entire organization&apos;s technical health and investment efficiency.
+                Stop asking &apos;which team owns this?&apos; Nervum maps your entire infrastructure with team ownership baked in, so you get answers — not more tabs.
               </p>
             </motion.div>
 
@@ -438,7 +438,7 @@ export function LandingPage() {
               </div>
               <h3 className="font-mono-landing text-xl font-bold uppercase mb-4">Early Founders</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Scale without losing speed. Keep your architecture clean as you transition from MVP to Enterprise.
+                You don&apos;t have a platform team yet. Nervum acts like one. GCP, GitHub, and Sentry centralized in a single view, from day one.
               </p>
             </motion.div>
 
@@ -454,7 +454,7 @@ export function LandingPage() {
               </div>
               <h3 className="font-mono-landing text-xl font-bold uppercase mb-4">Engineering Teams</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Onboard developers faster and resolve incidents with context instead of &quot;guessing.&quot;
+                Onboard new developers in hours. Every service, repo, and environment is mapped and searchable — no tribal knowledge needed.
               </p>
             </motion.div>
           </div>
@@ -576,11 +576,10 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="font-mono-landing text-4xl md:text-5xl font-bold uppercase tracking-tighter mb-8">
-              Ready to see <br />behind the curtain?
+              Close the tabs. <br /> Open Nervum.
             </h2>
             <p className="text-xl text-muted-foreground mb-12">
-              Join the early access program and get Nervum running in your infrastructure in minutes,
-              not months.
+              Connect your Google Cloud, GitHub, and Sentry in minutes. One management view for your entire software stack — no bookmarks required.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg" className="bg-primary text-primary-foreground landing-btn-pixel px-10 py-5 font-bold uppercase tracking-widest text-lg">
