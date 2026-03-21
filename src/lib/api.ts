@@ -341,6 +341,7 @@ type ApiError = { error: string };
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const base = getApiBase();
   const url = base ? `${base}${path}` : `/api/v1${path}`;
+  console.log('[Nervum API]', init?.method ?? 'GET', url);
   const res = await fetch(url, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...init?.headers },
