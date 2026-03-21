@@ -1,0 +1,30 @@
+# Dependencies & caches
+node_modules
+.pnpm-store
+.yarn/cache
+.yarn/install-state.gz
+
+# Yarn PnP artifacts — would hijack Node resolution in the image (pnpm uses node_modules here)
+.pnp.cjs
+.pnp.loader.mjs
+
+# Build output (rebuilt in image)
+dist
+.vite
+
+# Git & editor
+.git
+.gitignore
+.DS_Store
+**/.DS_Store
+.vscode
+.idea
+
+# Secrets & local env (never bake into images)
+.env
+.env.*
+!.env.example
+
+# Tests & coverage (not needed for production static build)
+coverage
+**/*.{test,spec}.{ts,tsx}
