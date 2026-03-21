@@ -1,3 +1,5 @@
+import { getApiBase } from './api-base';
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 export type User = {
@@ -337,7 +339,9 @@ export type DashboardSentryRelease = {
 type ApiError = { error: string };
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api/v1${path}`, {
+  const base = getApiBase();
+  const url = base ? `${base}${path}` : `/api/v1${path}`;
+  const res = await fetch(url, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,

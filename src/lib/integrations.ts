@@ -1,12 +1,6 @@
-/** Base URL for API when redirecting (e.g. OAuth connect). Empty = same origin (use proxy). */
-export function getApiBase(): string {
-  try {
-    const env = (import.meta as unknown as { env?: Record<string, string> }).env;
-    return env?.VITE_API_BASE_URL ?? '';
-  } catch {
-    return '';
-  }
-}
+import { getApiBase } from './api-base';
+
+export { getApiBase } from './api-base';
 
 export type ConnectableProvider = 'github' | 'gcloud';
 
