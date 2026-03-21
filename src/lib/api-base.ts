@@ -2,8 +2,20 @@
 export function getApiBase(): string {
   try {
     const env = (import.meta as unknown as { env?: Record<string, string> }).env;
-    const raw = env?.VITE_API_BASE_URL?.trim() ?? '';
-    return raw.replace(/\/+$/, '');
+    let raw = env?.VITE_API_BASE_URL?.trim() ?? '';
+    if (!raw) return '';
+    raw = raw.replace(/\/+$/, '');
+    try {
+      const u = new URL(raw);
+      const pathOnly = u.pathname.replace(/\/+$/, '') || '';
+      if (pathOnly === '') {
+        u.pathname = '/api/v1';
+        return `${u.origin}${u.pathname}`;
+      }
+    } catch {
+      // invalid URL (e.g. build placeholder) — return trimmed string as-is
+    }
+    return raw;
   } catch {
     return '';
   }
