@@ -60,11 +60,11 @@ export function GoogleCloudCard({ orgId }: Props) {
           </Button>
         </div>
       )}
-      <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[320px] flex flex-col">
+      <Card className="overflow-hidden rounded-xl border border-border bg-card/60 backdrop-blur-md shadow-sm max-h-[320px] flex flex-col">
         <CardHeader className="border-b border-border px-5 py-4 shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Cloud className="size-5 text-muted-foreground shrink-0" />
+              <Cloud className="size-5 text-primary shrink-0" />
               <CardTitle className="text-lg font-bold">Google Cloud</CardTitle>
               {!needsConfig && (
                 <span className="text-[10px] font-bold uppercase rounded border border-emerald-100 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-400 px-2 py-0.5">

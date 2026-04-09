@@ -8,13 +8,15 @@ export interface ComparisonItem {
 interface BeforeAfterProps {
   before: ComparisonItem[];
   after: ComparisonItem[];
+  beforeLabel?: string;
+  afterLabel?: string;
 }
 
 function formatNum(n: number) {
   return String(n).padStart(2, '0');
 }
 
-export function BeforeAfter({ before, after }: BeforeAfterProps) {
+export function BeforeAfter({ before, after, beforeLabel = 'Without Nervum', afterLabel = 'With Nervum' }: BeforeAfterProps) {
   return (
     <div className="grid md:grid-cols-2 gap-12">
       {/* Before */}
@@ -28,7 +30,7 @@ export function BeforeAfter({ before, after }: BeforeAfterProps) {
         <div className="flex items-center gap-2 mb-6">
           <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
           <h3 className="text-destructive font-mono-landing text-sm uppercase tracking-widest">
-            Without Nervum
+            {beforeLabel}
           </h3>
         </div>
         <ul className="space-y-6">
@@ -70,7 +72,7 @@ export function BeforeAfter({ before, after }: BeforeAfterProps) {
           <div className="flex items-center gap-2 mb-6">
             <span className="w-2 h-2 rounded-full bg-primary" />
             <h3 className="text-primary font-mono-landing text-sm uppercase tracking-widest">
-              With Nervum
+              {afterLabel}
             </h3>
           </div>
           <ul className="space-y-6">

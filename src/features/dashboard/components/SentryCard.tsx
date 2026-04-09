@@ -34,7 +34,7 @@ export function SentryCard({ orgId }: Props) {
   }
 
   return (
-    <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[320px] flex flex-col">
+    <Card className="overflow-hidden rounded-xl border border-border bg-card/60 backdrop-blur-md shadow-sm max-h-[320px] flex flex-col">
       <CardHeader
         className="border-b border-border px-5 py-4 text-white shrink-0"
         style={{ backgroundColor: 'var(--sentry-header)' }}
@@ -61,23 +61,23 @@ export function SentryCard({ orgId }: Props) {
         ) : (
         <>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'issues' | 'stats' | 'releases')} className="w-full">
-          <div className="border-b border-border bg-muted/50 px-4 py-2 flex gap-4">
+          <div className="border-b border-border px-4 py-2 flex gap-4">
             <TabsList className="mb-0 w-full justify-start rounded-none border-0 bg-transparent p-0 gap-4 h-auto">
               <TabsTrigger
                 value="issues"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-bold px-0 pb-1 text-xs"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-0 pb-1 text-xs"
               >
                 Issues
               </TabsTrigger>
               <TabsTrigger
                 value="stats"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-bold px-0 pb-1 text-xs text-muted-foreground data-[state=active]:text-foreground"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-0 pb-1 text-xs text-muted-foreground"
               >
                 Stats
               </TabsTrigger>
               <TabsTrigger
                 value="releases"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:font-bold px-0 pb-1 text-xs text-muted-foreground data-[state=active]:text-foreground"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-bold px-0 pb-1 text-xs text-muted-foreground"
               >
                 Releases
               </TabsTrigger>

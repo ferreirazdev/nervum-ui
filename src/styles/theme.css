@@ -14,7 +14,7 @@
   --brand-800: #1e293b;
   --brand-900: #0f172a;
   /* Sentry card header */
-  --sentry-header: #362d59;
+  --sentry-header: #1c1332;
   /* Light theme (default when no .dark class on html) */
   --font-size: 16px;
   --background: #f8fafc;
@@ -24,7 +24,7 @@
   --card-foreground: #0f172a;
   --popover: var(--surface);
   --popover-foreground: #0f172a;
-  --primary: #2563eb;
+  --primary: #0ea5e9;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -38,49 +38,50 @@
   --input: #e2e8f0;
   --input-background: #ffffff;
   --switch-background: #cbd5e1;
-  --ring: #3b82f6;
+  --ring: #0ea5e9;
   --overlay: rgba(0, 0, 0, 0.5);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --radius: 0.625rem;
-  /* Nervum palette (aligned to blue primary) */
-  --nervum-primary-purple: #2563eb;
-  --nervum-secondary-blue: #3b82f6;
-  --nervum-accent-cyan: #0ea5e9;
+  /* Nervum palette (cyan/violet forward) */
+  --nervum-primary-purple: #a78bfa;
+  --nervum-secondary-blue: #38bdf8;
+  --nervum-accent-cyan: #22d3ee;
   --nervum-accent-cyan-bright: #38bdf8;
-  --nervum-primary-purple-muted: rgba(37, 99, 235, 0.2);
-  --nervum-secondary-blue-muted: rgba(59, 130, 246, 0.2);
-  --nervum-accent-cyan-muted: rgba(14, 165, 233, 0.2);
+  --nervum-accent-violet: #7c3aed;
+  --nervum-primary-purple-muted: rgba(167, 139, 250, 0.2);
+  --nervum-secondary-blue-muted: rgba(56, 189, 248, 0.2);
+  --nervum-accent-cyan-muted: rgba(34, 211, 238, 0.2);
   /* Nervum map accents (for gradients, glows) */
-  --nervum-blue: #3b82f6;
-  --nervum-blue-muted: rgba(59, 130, 246, 0.2);
-  --nervum-purple: #2563eb;
-  --nervum-purple-muted: rgba(37, 99, 235, 0.2);
-  --nervum-cyan: #0ea5e9;
+  --nervum-blue: #38bdf8;
+  --nervum-blue-muted: rgba(56, 189, 248, 0.2);
+  --nervum-purple: #a78bfa;
+  --nervum-purple-muted: rgba(167, 139, 250, 0.2);
+  --nervum-cyan: #22d3ee;
   --nervum-cyan-bright: #38bdf8;
   --nervum-green: #22c55e;
   --nervum-green-muted: rgba(34, 197, 94, 0.1);
-  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #3b82f6 45%, #0ea5e9 85%, #38bdf8 100%);
+  --gradient-primary: linear-gradient(135deg, #38bdf8 0%, #7c3aed 100%);
   --nervum-surface: var(--surface);
   --nervum-surface-elevated: #f1f5f9;
   --sidebar: var(--surface);
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #2563eb;
+  --sidebar-primary: #0ea5e9;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f1f5f9;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e2e8f0;
-  --sidebar-ring: #3b82f6;
+  --sidebar-ring: #0ea5e9;
   --sidebar-muted: var(--muted-foreground);
   --sidebar-accent-strong: var(--sidebar-accent);
   --sidebar-beta-bg: var(--sidebar-accent);
   --sidebar-beta-text: var(--sidebar-primary);
   --topbar: var(--sidebar);
   --topbar-border: var(--sidebar-border);
-  --chart-1: #2563eb;
-  --chart-2: #3b82f6;
-  --chart-3: #0ea5e9;
-  --chart-4: #eab308;
+  --chart-1: #22d3ee;
+  --chart-2: #38bdf8;
+  --chart-3: #a78bfa;
+  --chart-4: #7c3aed;
   --chart-5: #64748b;
 }
 
@@ -89,43 +90,43 @@
    * Dark theme (when .dark is on html).
    * Slate-800/900 bases; primary stays blue.
    */
-  --background: #0f172a;
+  --background: #0a0f1a;
   --foreground: #f8fafc;
-  --surface: #1e293b;
-  --card: var(--surface);
+  --surface: #0d1117;
+  --card: #0f1623;
   --card-foreground: #f8fafc;
-  --popover: var(--surface);
+  --popover: #0f1623;
   --popover-foreground: #f8fafc;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #334155;
+  --primary: #22d3ee;
+  --primary-foreground: #0a0f1a;
+  --secondary: #0f1623;
   --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
+  --muted: #0f1623;
   --muted-foreground: #94a3b8;
-  --accent: #334155;
+  --accent: #0f1623;
   --accent-foreground: #f8fafc;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #334155;
-  --input: #334155;
-  --input-background: #1e293b;
-  --switch-background: #475569;
-  --ring: #3b82f6;
-  --overlay: rgba(15, 23, 42, 0.8);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --input-background: #0f1623;
+  --switch-background: #334155;
+  --ring: #22d3ee;
+  --overlay: rgba(10, 15, 26, 0.8);
   --nervum-surface: var(--surface);
-  --nervum-surface-elevated: #334155;
+  --nervum-surface-elevated: #0f1623;
   --sidebar: var(--surface);
   --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0f172a;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #0a0f1a;
+  --sidebar-accent: #0a0f1a;
   --sidebar-accent-foreground: #e2e8f0;
-  --sidebar-border: #2a2a3c;
-  --sidebar-ring: #3b82f6;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #22d3ee;
   --sidebar-muted: #94a3b8;
-  --sidebar-accent-strong: #3e3e5c;
-  --sidebar-beta-bg: #2b2b4d;
-  --sidebar-beta-text: #93c5fd;
+  --sidebar-accent-strong: #1a2035;
+  --sidebar-beta-bg: #0f1623;
+  --sidebar-beta-text: #38bdf8;
   --topbar: var(--sidebar);
   --topbar-border: var(--sidebar-border);
 }
@@ -196,6 +197,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   html {
@@ -339,7 +341,10 @@
   box-shadow: 2px 0 12px rgb(15 23 42 / 0.04);
 }
 .dark [data-sidebar="sidebar"] {
-  box-shadow: 2px 0 12px rgb(0 0 0 / 0.2);
+  background-color: color-mix(in srgb, var(--card) 60%, transparent) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 2px 0 20px rgb(0 0 0 / 0.3);
 }
 /* Sidebar container: right border uses theme */
 [data-slot="sidebar-container"] {
@@ -350,6 +355,23 @@
   background-color: var(--topbar);
   border-bottom: 1px solid var(--topbar-border);
 }
+.dark [data-layout="topbar"] {
+  background-color: color-mix(in srgb, var(--card) 60%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+/* Sidebar hover + active: no background, primary cyan text */
+.dark [data-sidebar="menu-button"]:hover,
+.dark [data-sidebar="menu-button"][data-active="true"] {
+  background-color: transparent !important;
+  color: var(--sidebar-primary) !important;
+}
+.dark [data-sidebar="menu-sub-button"]:hover,
+.dark [data-sidebar="menu-sub-button"][data-active="true"] {
+  background-color: transparent !important;
+  color: var(--sidebar-primary) !important;
+}
+
 .sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--sidebar-accent-strong) transparent;

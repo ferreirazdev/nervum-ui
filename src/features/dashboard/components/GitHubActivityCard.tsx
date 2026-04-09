@@ -43,11 +43,11 @@ export function GitHubActivityCard({ orgId }: Props) {
   }
 
   return (
-    <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-sm max-h-[320px] flex flex-col">
-      <CardHeader className="border-b border-border bg-muted/50 px-5 py-4 shrink-0">
+    <Card className="overflow-hidden rounded-xl border border-border bg-card/60 backdrop-blur-md shadow-sm max-h-[320px] flex flex-col">
+      <CardHeader className="border-b border-border px-5 py-4 shrink-0">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <GitBranch className="size-5 text-muted-foreground shrink-0" />
+            <GitBranch className="size-5 text-primary shrink-0" />
             <CardTitle className="text-lg font-bold">GitHub Activity</CardTitle>
             <Button
               variant="ghost"

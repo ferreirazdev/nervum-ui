@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import {
@@ -15,11 +16,13 @@ import {
   UserCheck,
   Building2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SystemGraphVisualization } from '../components/SystemGraphVisualization';
 import { LandingIntegrations } from '../components/LandingIntegrations';
 import { FeatureCard } from '../components/FeatureCard';
 import { AutomationFlow } from '../components/AutomationFlow';
 import { BeforeAfter } from '../components/BeforeAfter';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { Button } from '@/app/components/ui/button';
 import { AppLogo } from '@/app/components/AppLogo';
 import { useAuth } from '@/features/auth';
@@ -27,36 +30,58 @@ import '../landing.css';
 
 export function LandingPage() {
   const { user } = useAuth();
+  const { t } = useTranslation('landing');
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const testimonials = t('socialProof.testimonials', { returnObjects: true }) as Array<{
+    quote: string;
+    author: string;
+    role: string;
+    initials: string;
+  }>;
 
   return (
-    <div className="landing-page landing-grid-bg min-h-screen bg-background text-foreground scroll-smooth">
+    <div className="landing-page min-h-screen bg-background text-foreground scroll-smooth">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-surface/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <nav
+        className={`sticky top-0 z-50 border-b transition-all duration-300 ${
+          scrolled
+            ? 'landing-nav-glass border-white/[0.06]'
+            : 'bg-transparent border-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-[72px]">
           <Link to="/" className="flex items-center gap-2">
             <AppLogo className="h-9 w-auto" />
           </Link>
-          <div className="flex items-center gap-4">
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              Features
+          <div className="flex items-center gap-8">
+            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+              {t('nav.features')}
             </a>
-            <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              How it works
+            <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+              {t('nav.howItWorks')}
             </a>
-            <a href="#who" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              Who it&apos;s for
+            <a href="#who" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+              {t('nav.whoItsFor')}
             </a>
+            <LanguageSwitcher />
             {user ? (
-              <Button asChild className="bg-primary text-primary-foreground landing-btn-pixel px-4 py-2 text-xs font-bold uppercase tracking-widest">
-                <Link to="/dashboard">Dashboard</Link>
+              <Button asChild className="landing-btn-gradient rounded-xl px-5 py-2.5 text-sm font-semibold">
+                <Link to="/dashboard">{t('nav.dashboard')}</Link>
               </Button>
             ) : (
               <>
-                <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                  <Link to="/login">Sign in</Link>
+                <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground text-sm font-medium hidden sm:inline-flex">
+                  <Link to="/login">{t('nav.signIn')}</Link>
                 </Button>
-                <Button asChild className="bg-primary text-primary-foreground landing-btn-pixel px-4 py-2 text-xs font-bold uppercase tracking-widest">
-                  <Link to="/register">Get started</Link>
+                <Button asChild className="landing-btn-outline rounded-xl px-5 py-2.5 text-sm font-semibold">
+                  <Link to="/register">{t('nav.getStarted')}</Link>
                 </Button>
               </>
             )}
@@ -65,8 +90,8 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <section className="relative min-h-[calc(100vh-72px)] flex flex-col items-center justify-center pt-20 pb-32 overflow-hidden landing-hero-glow border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           <div className="text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -86,19 +111,20 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="font-mono-landing text-5xl md:text-7xl font-bold tracking-tighter mb-6 uppercase"
+              className="font-display-landing text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
+              style={{ lineHeight: 1.05 }}
             >
-              No more bookmarks. <br />
-              <span className="text-primary">One place for everything.</span>
+              {t('hero.titleLine1')} <br />
+              <span className="landing-gradient-text">{t('hero.titleLine2')}</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
+              style={{ lineHeight: 1.7 }}
             >
-              Stop switching between GCP Console, GitHub, and Sentry. Nervum centralizes your cloud infrastructure,
-              repositories, and application errors into a single management view — always in sync, always actionable.
+              {t('hero.subtitle')}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -106,14 +132,14 @@ export function LandingPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row justify-center gap-4 mb-20"
             >
-              <Button asChild size="lg" className="bg-primary text-primary-foreground landing-btn-pixel px-8 py-4 font-bold uppercase tracking-widest text-base">
+              <Button asChild size="lg" className="landing-btn-gradient rounded-xl px-8 py-4 font-semibold text-base">
                 <Link to="/register">
-                  Request Early Access
+                  {t('hero.requestAccess')}
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-border text-foreground px-8 py-4 font-bold uppercase tracking-widest hover:bg-muted/50 text-base">
-                Book a Demo
+              <Button size="lg" variant="outline" className="landing-btn-outline rounded-xl px-8 py-4 font-semibold text-base border-white/25 text-foreground hover:bg-transparent">
+                {t('hero.bookDemo')}
               </Button>
             </motion.div>
 
@@ -125,27 +151,27 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative max-w-4xl mx-auto p-4 border border-border bg-surface/50 backdrop-blur-sm rounded-lg landing-retro-border overflow-hidden"
+              className="landing-hero-card-glow relative max-w-4xl mx-auto p-4 border border-border bg-surface/50 backdrop-blur-sm rounded-2xl overflow-hidden"
             >
-              <div className="absolute inset-0 landing-pixel-dots opacity-20 pointer-events-none" />
+              <div className="absolute inset-0 landing-pixel-dots opacity-10 pointer-events-none" />
               <div className="relative">
                 <div className="flex items-center justify-between mb-4 border-b border-border pb-2">
                   <div className="flex gap-2">
-                    <span className="w-2 h-2 rounded-full bg-destructive" aria-hidden />
-                    <span className="w-2 h-2 rounded-full bg-chart-4" aria-hidden />
-                    <span className="w-2 h-2 rounded-full bg-chart-3" aria-hidden />
+                    <span className="w-2.5 h-2.5 rounded-full bg-destructive" aria-hidden />
+                    <span className="w-2.5 h-2.5 rounded-full bg-chart-4" aria-hidden />
+                    <span className="w-2.5 h-2.5 rounded-full bg-chart-3" aria-hidden />
                   </div>
-                  <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+                  <span className="font-mono-landing font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
                     Live_System_Graph.sh
                   </span>
                 </div>
                 <div className="relative min-h-[280px] md:min-h-[384px]">
                   <SystemGraphVisualization />
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:right-4 md:translate-x-0 flex items-center justify-center pointer-events-none">
-                    <div className="bg-surface border border-primary/50 p-4 rounded text-xs font-mono">
-                      <span className="text-primary">TOOLS REPLACED:</span> GCP + GitHub + Sentry<br />
-                      <span className="text-primary">ENVIRONMENTS:</span> 4 active<br />
-                      <span className="text-primary">LAST DEPLOY:</span> 3m ago
+                    <div className="bg-surface border border-primary/30 p-4 rounded-lg text-xs font-mono-landing font-mono">
+                      <span className="text-primary">{t('hero.toolsReplaced')}</span> {t('hero.toolsReplacedValue')}<br />
+                      <span className="text-primary">{t('hero.environments')}</span> {t('hero.environmentsValue')}<br />
+                      <span className="text-primary">{t('hero.lastDeploy')}</span> {t('hero.lastDeployValue')}
                     </div>
                   </div>
                 </div>
@@ -160,16 +186,16 @@ export function LandingPage() {
               className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
             >
               <div className="flex flex-col items-center p-6 border-x border-border">
-                <div className="font-mono-landing text-3xl text-primary mb-2">3 min</div>
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">Time to connect your stack</div>
+                <div className="font-mono-landing font-mono text-3xl text-primary mb-2">{t('stats.time')}</div>
+                <div className="text-sm uppercase tracking-widest text-muted-foreground font-mono-landing font-mono">{t('stats.timeLabel')}</div>
               </div>
               <div className="flex flex-col items-center p-6 border-x border-border">
-                <div className="font-mono-landing text-3xl text-primary mb-2">1 tab</div>
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">For GCP, GitHub &amp; Sentry</div>
+                <div className="font-mono-landing font-mono text-3xl text-primary mb-2">{t('stats.tabs')}</div>
+                <div className="text-sm uppercase tracking-widest text-muted-foreground font-mono-landing font-mono">{t('stats.tabsLabel')}</div>
               </div>
               <div className="flex flex-col items-center p-6 border-x border-border">
-                <div className="font-mono-landing text-3xl text-primary mb-2">0 agents</div>
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">No instrumentation needed</div>
+                <div className="font-mono-landing font-mono text-3xl text-primary mb-2">{t('stats.agents')}</div>
+                <div className="text-sm uppercase tracking-widest text-muted-foreground font-mono-landing font-mono">{t('stats.agentsLabel')}</div>
               </div>
             </motion.div>
           </div>
@@ -186,24 +212,17 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">The Bookmark Graveyard</h2>
+            <h2 className="font-display-landing text-3xl md:text-4xl font-bold tracking-tight mb-4">{t('problem.title')}</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Your team has 12 browser tabs open before they can answer one question. Context lives in different tools,
-              and every incident starts with a scavenger hunt.
+              {t('problem.subtitle')}
             </p>
           </motion.div>
 
           <BeforeAfter
-            before={[
-              { title: 'GCP Console', text: "Every VM, database, and Cloud Run service lives in a different part of the console. Good luck getting the full picture." },
-              { title: 'GitHub, separately', text: "Open a second tab to see what just got deployed. Cross-reference commits manually. Repeat for every incident." },
-              { title: 'Sentry, in another tab', text: "An error is firing. But which service? Which team? Which commit caused it? Time to open more tabs." },
-            ]}
-            after={[
-              { title: 'Your Cloud, here', text: "Browse Compute VMs, Cloud SQL databases, and Cloud Run services — start, stop, and inspect them without leaving Nervum." },
-              { title: 'Your repos, here', text: "Commits, pull requests, and merges from every connected GitHub repository in a unified activity feed." },
-              { title: 'Your errors, here', text: "Sentry alerts linked to the service and team that owns them. Full context, zero tab-switching." },
-            ]}
+            beforeLabel={t('problem.withoutNervum')}
+            afterLabel={t('problem.withNervum')}
+            before={t('problem.before', { returnObjects: true }) as Array<{ title: string; text: string }>}
+            after={t('problem.after', { returnObjects: true }) as Array<{ title: string; text: string }>}
           />
         </div>
       </section>
@@ -218,8 +237,8 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Integrate in minutes</h2>
-            <p className="text-muted-foreground">Connect your tools once. Manage everything from one place, forever.</p>
+            <h2 className="font-display-landing text-3xl md:text-4xl font-bold tracking-tight mb-4">{t('howItWorks.title')}</h2>
+            <p className="text-muted-foreground">{t('howItWorks.subtitle')}</p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -230,12 +249,12 @@ export function LandingPage() {
               transition={{ duration: 0.5, delay: 0 }}
               className="text-center p-8"
             >
-              <div className="w-16 h-16 border border-border bg-muted mx-auto flex items-center justify-center mb-6 text-primary">
-                <Network className="w-8 h-8" />
+              <div className="landing-icon-box mx-auto mb-6">
+                <Network className="w-6 h-6" />
               </div>
-              <h4 className="font-mono-landing text-lg uppercase mb-3">01. Connect</h4>
+              <h4 className="font-display-landing text-lg font-bold mb-3">{t('howItWorks.connect.step')}</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Link Google Cloud, GitHub, and Sentry via OAuth in under 3 minutes. No agents, no YAML, no SDK to install.
+                {t('howItWorks.connect.text')}
               </p>
             </motion.div>
 
@@ -246,12 +265,12 @@ export function LandingPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-center p-8"
             >
-              <div className="w-16 h-16 border border-border bg-muted mx-auto flex items-center justify-center mb-6 text-primary">
-                <Eye className="w-8 h-8" />
+              <div className="landing-icon-box mx-auto mb-6">
+                <Eye className="w-6 h-6" />
               </div>
-              <h4 className="font-mono-landing text-lg uppercase mb-3">02. Map</h4>
+              <h4 className="font-display-landing text-lg font-bold mb-3">{t('howItWorks.map.step')}</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Nervum builds an interactive map of your environments — services, databases, repos, and team ownership — and keeps it live.
+                {t('howItWorks.map.text')}
               </p>
             </motion.div>
 
@@ -262,12 +281,12 @@ export function LandingPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-center p-8"
             >
-              <div className="w-16 h-16 border border-border bg-muted mx-auto flex items-center justify-center mb-6 text-primary">
-                <Zap className="w-8 h-8" />
+              <div className="landing-icon-box mx-auto mb-6">
+                <Zap className="w-6 h-6" />
               </div>
-              <h4 className="font-mono-landing text-lg uppercase mb-3">03. Manage</h4>
+              <h4 className="font-display-landing text-lg font-bold mb-3">{t('howItWorks.manage.step')}</h4>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Start VMs, review SQL backups, trace a Sentry error to its commit, and check deployment status. All from one tab.
+                {t('howItWorks.manage.text')}
               </p>
             </motion.div>
           </div>
@@ -284,58 +303,58 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Everything in one place</h2>
+            <h2 className="font-display-landing text-3xl md:text-4xl font-bold tracking-tight mb-4">{t('features.title')}</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Replace the tabs. Nervum surfaces the data you need from every tool, in one management view.
+              {t('features.subtitle')}
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard
               icon={GitBranch}
-              category="Architecture"
-              title="Environment Maps"
-              description="Visual, interactive graphs of your services, databases, and Cloud Run revisions — per environment, always current."
+              category={t('features.environmentMaps.category')}
+              title={t('features.environmentMaps.title')}
+              description={t('features.environmentMaps.description')}
               delay={0}
               gridCell
             />
             <FeatureCard
               icon={Activity}
-              category="Observability"
-              title="Unified Activity Feed"
-              description="GitHub commits, PRs, Cloud Build deploys, and Sentry errors. One feed, instead of four open tabs."
+              category={t('features.activityFeed.category')}
+              title={t('features.activityFeed.title')}
+              description={t('features.activityFeed.description')}
               delay={0.1}
               gridCell
             />
             <FeatureCard
               icon={Eye}
-              category="Cloud Ops"
-              title="GCP Management"
-              description="Browse and operate Compute VMs, Cloud SQL, and Cloud Run without opening the GCP Console. Start/stop, inspect, audit — right here."
+              category={t('features.gcpManagement.category')}
+              title={t('features.gcpManagement.title')}
+              description={t('features.gcpManagement.description')}
               delay={0.2}
               gridCell
             />
             <FeatureCard
               icon={DollarSign}
-              category="Ownership"
-              title="Team Ownership"
-              description="Assign teams to services and environments. Every engineer knows who owns what — no Slack pinging required."
+              category={t('features.teamOwnership.category')}
+              title={t('features.teamOwnership.title')}
+              description={t('features.teamOwnership.description')}
               delay={0.3}
               gridCell
             />
             <FeatureCard
               icon={UserCheck}
-              category="Security"
-              title="Access Control"
-              description="Per-environment RBAC. Control who sees which infrastructure. No over-sharing, no under-sharing."
+              category={t('features.accessControl.category')}
+              title={t('features.accessControl.title')}
+              description={t('features.accessControl.description')}
               delay={0.4}
               gridCell
             />
             <FeatureCard
               icon={Zap}
-              category="AI"
-              title="AI Assistant"
-              description="Ask your stack questions in plain English. The built-in AI knows your environments, repos, and health status."
+              category={t('features.aiAssistant.category')}
+              title={t('features.aiAssistant.title')}
+              description={t('features.aiAssistant.description')}
               delay={0.5}
               gridCell
             />
@@ -353,14 +372,14 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Replace your daily tabs</h2>
-            <p className="text-muted-foreground">These are the workflows your team runs every day — now without switching tools.</p>
+            <h2 className="font-display-landing text-3xl md:text-4xl font-bold tracking-tight mb-4">{t('automation.title')}</h2>
+            <p className="text-muted-foreground">{t('automation.subtitle')}</p>
           </motion.div>
 
           <div className="space-y-12">
             <AutomationFlow
-              title="Incident Triage"
-              description="A Sentry error fires. See the service, the owning team, and the last GitHub commit — without opening a single extra tab."
+              title={t('automation.incidentTriage.title')}
+              description={t('automation.incidentTriage.description')}
               steps={[
                 { label: 'SENTRY_ERROR' },
                 { label: 'MAP_SERVICE' },
@@ -369,8 +388,8 @@ export function LandingPage() {
               delay={0}
             />
             <AutomationFlow
-              title="Deploy Verification"
-              description="A Cloud Build job finishes. Confirm which GitHub commit triggered it, which environment it hit, and whether the service is healthy."
+              title={t('automation.deployVerification.title')}
+              description={t('automation.deployVerification.description')}
               steps={[
                 { label: 'CLOUD_BUILD' },
                 { label: 'LINK_COMMIT' },
@@ -379,8 +398,8 @@ export function LandingPage() {
               delay={0.1}
             />
             <AutomationFlow
-              title="Pre-Release Audit"
-              description="Before a release: verify Cloud SQL backups, check all VM states, and confirm environment status — from one screen."
+              title={t('automation.preReleaseAudit.title')}
+              description={t('automation.preReleaseAudit.description')}
               steps={[
                 { label: 'FETCH_INSTANCES' },
                 { label: 'CHECK_BACKUPS' },
@@ -402,10 +421,9 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">For teams tired of tab management</h2>
+            <h2 className="font-display-landing text-3xl md:text-4xl font-bold tracking-tight mb-4">{t('who.title')}</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Whether you&apos;re a solo CTO or a 50-engineer team, Nervum gives you a single management view
-              across your entire software stack.
+              {t('who.subtitle')}
             </p>
           </motion.div>
 
@@ -415,14 +433,14 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0 }}
-              className="p-10 border border-border hover:border-primary/40 transition-all group rounded-lg"
+              className="landing-card-nexus p-10 group"
             >
               <div className="text-primary mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Users className="w-10 h-10" />
               </div>
-              <h3 className="font-mono-landing text-xl font-bold uppercase mb-4">CTOs & Tech Leads</h3>
+              <h3 className="font-display-landing text-xl font-bold mb-4">{t('who.ctos.title')}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Stop asking &apos;which team owns this?&apos; Nervum maps your entire infrastructure with team ownership baked in, so you get answers — not more tabs.
+                {t('who.ctos.text')}
               </p>
             </motion.div>
 
@@ -431,14 +449,14 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="p-10 border border-border hover:border-primary/40 transition-all group rounded-lg"
+              className="landing-card-nexus p-10 group"
             >
               <div className="text-primary mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Sparkles className="w-10 h-10" />
               </div>
-              <h3 className="font-mono-landing text-xl font-bold uppercase mb-4">Early Founders</h3>
+              <h3 className="font-display-landing text-xl font-bold mb-4">{t('who.founders.title')}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                You don&apos;t have a platform team yet. Nervum acts like one. GCP, GitHub, and Sentry centralized in a single view, from day one.
+                {t('who.founders.text')}
               </p>
             </motion.div>
 
@@ -447,14 +465,14 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-10 border border-border hover:border-primary/40 transition-all group rounded-lg"
+              className="landing-card-nexus p-10 group"
             >
               <div className="text-primary mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Building2 className="w-10 h-10" />
               </div>
-              <h3 className="font-mono-landing text-xl font-bold uppercase mb-4">Engineering Teams</h3>
+              <h3 className="font-display-landing text-xl font-bold mb-4">{t('who.teams.title')}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Onboard new developers in hours. Every service, repo, and environment is mapped and searchable — no tribal knowledge needed.
+                {t('who.teams.text')}
               </p>
             </motion.div>
           </div>
@@ -471,28 +489,28 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="mb-12"
           >
-            <h2 className="font-mono-landing text-2xl uppercase tracking-widest mb-4">Enterprise-Grade Security</h2>
+            <h2 className="font-display-landing text-2xl font-bold tracking-tight mb-4">{t('security.title')}</h2>
             <p className="text-muted-foreground">
-              Your system data is sensitive. We take security seriously.
+              {t('security.subtitle')}
             </p>
           </motion.div>
 
           <div className="flex flex-wrap justify-center gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 border border-border flex items-center justify-center font-bold text-xs text-foreground">SOC2</div>
-              <span className="text-sm uppercase tracking-widest font-mono-landing text-muted-foreground">Compliant</span>
+              <div className="w-10 h-10 border border-border flex items-center justify-center font-bold text-xs text-foreground rounded">SOC2</div>
+              <span className="text-sm uppercase tracking-widest font-mono-landing font-mono text-muted-foreground">{t('security.soc2')}</span>
             </div>
             <div className="flex items-center gap-3">
               <Lock className="w-6 h-6 text-foreground" />
-              <span className="text-sm uppercase tracking-widest font-mono-landing text-muted-foreground">Encryption at Rest</span>
+              <span className="text-sm uppercase tracking-widest font-mono-landing font-mono text-muted-foreground">{t('security.encryption')}</span>
             </div>
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6 text-foreground" />
-              <span className="text-sm uppercase tracking-widest font-mono-landing text-muted-foreground">RBAC Controls</span>
+              <span className="text-sm uppercase tracking-widest font-mono-landing font-mono text-muted-foreground">{t('security.rbac')}</span>
             </div>
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6 text-foreground" />
-              <span className="text-sm uppercase tracking-widest font-mono-landing text-muted-foreground">Read-Only Access</span>
+              <span className="text-sm uppercase tracking-widest font-mono-landing font-mono text-muted-foreground">{t('security.readOnly')}</span>
             </div>
           </div>
         </div>
@@ -508,55 +526,30 @@ export function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="font-mono-landing text-3xl uppercase tracking-tight mb-4">Trusted by engineering teams</h2>
+            <h2 className="font-display-landing text-3xl md:text-4xl font-bold tracking-tight mb-4">{t('socialProof.title')}</h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Join forward-thinking companies using Nervum to scale with confidence.
+              {t('socialProof.subtitle')}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                quote:
-                  "Nervum gave us the visibility we desperately needed. Now we can see exactly what's connected to what and who owns it.",
-                author: 'Sarah Chen',
-                role: 'CTO at TechFlow',
-                initials: 'SC',
-                delay: 0,
-              },
-              {
-                quote:
-                  'The automation flows are a game-changer. Incidents now create tickets with full context automatically. Our MTTR dropped by 60%.',
-                author: 'Michael Rodriguez',
-                role: 'Tech Lead at DataScale',
-                initials: 'MR',
-                delay: 0.1,
-              },
-              {
-                quote:
-                  "We don't have a platform team yet, but Nervum makes us look like we do. It's like having an SRE in a box.",
-                author: 'Emma Thompson',
-                role: 'Founder at BuildFast',
-                initials: 'ET',
-                delay: 0.2,
-              },
-            ].map((testimonial, idx) => (
+            {testimonials.map((testimonial, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: testimonial.delay }}
-                className="p-8 rounded-lg border border-border bg-muted/30 italic"
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="landing-card-nexus p-8 italic"
               >
-                <p className="text-foreground leading-relaxed mb-6">&quot;{testimonial.quote}&quot;</p>
+                <p className="text-foreground leading-relaxed mb-6">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-4 not-italic">
-                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center font-bold text-primary-foreground text-xs flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 landing-btn-gradient">
                     {testimonial.initials}
                   </div>
                   <div>
                     <p className="font-bold text-sm text-foreground">{testimonial.author}</p>
-                    <p className="text-[10px] uppercase text-muted-foreground font-mono-landing">{testimonial.role}</p>
+                    <p className="text-[10px] uppercase text-muted-foreground font-mono-landing font-mono">{testimonial.role}</p>
                   </div>
                 </div>
               </motion.div>
@@ -566,8 +559,8 @@ export function LandingPage() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 landing-pixel-dots opacity-20 pointer-events-none" />
+      <section className="py-32 relative overflow-hidden landing-cta-bg landing-cta-glow">
+        <div className="absolute inset-0 landing-pixel-dots opacity-10 pointer-events-none" />
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -575,25 +568,28 @@ export function LandingPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="font-mono-landing text-4xl md:text-5xl font-bold uppercase tracking-tighter mb-8">
-              Close the tabs. <br /> Open Nervum.
+            <h2
+              className="font-display-landing text-4xl md:text-5xl font-black tracking-tight mb-8"
+              style={{ lineHeight: 1.1 }}
+            >
+              {t('cta.titleLine1')} <br /> {t('cta.titleLine2')}
             </h2>
-            <p className="text-xl text-muted-foreground mb-12">
-              Connect your Google Cloud, GitHub, and Sentry in minutes. One management view for your entire software stack — no bookmarks required.
+            <p className="text-xl text-muted-foreground mb-12" style={{ lineHeight: 1.7 }}>
+              {t('cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button asChild size="lg" className="bg-primary text-primary-foreground landing-btn-pixel px-10 py-5 font-bold uppercase tracking-widest text-lg">
+              <Button asChild size="lg" className="landing-btn-gradient rounded-xl px-10 py-5 font-semibold text-lg">
                 <Link to="/register">
-                  Request Early Access
+                  {t('cta.requestAccess')}
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-border text-foreground px-10 py-5 font-bold uppercase tracking-widest hover:bg-muted/50 text-lg"
+                className="landing-btn-outline rounded-xl px-10 py-5 font-semibold text-lg border-white/25 text-foreground hover:bg-transparent"
               >
-                Book a Demo
+                {t('cta.bookDemo')}
               </Button>
             </div>
           </motion.div>
@@ -607,18 +603,18 @@ export function LandingPage() {
             <Link to="/" className="flex items-center gap-2">
               <AppLogo className="h-6 w-auto" />
             </Link>
-            <div className="flex gap-8 text-xs uppercase tracking-widest font-mono-landing text-muted-foreground">
+            <div className="flex gap-8 text-xs uppercase tracking-widest font-mono-landing font-mono text-muted-foreground">
               <a href="#" className="hover:text-primary transition-colors">
-                Privacy
+                {t('footer.privacy')}
               </a>
               <a href="#" className="hover:text-primary transition-colors">
-                Terms
+                {t('footer.terms')}
               </a>
               <a href="#" className="hover:text-primary transition-colors">
-                Security
+                {t('footer.security')}
               </a>
             </div>
-            <p className="text-[10px] text-muted-foreground font-mono-landing">© 2026 Nervum. Engineering Intelligence Platform.</p>
+            <p className="text-[10px] text-muted-foreground font-mono-landing font-mono">{t('footer.copyright')}</p>
           </div>
         </div>
       </footer>
@@ -627,10 +623,10 @@ export function LandingPage() {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           type="button"
-          className="w-12 h-12 bg-surface border border-border text-primary flex items-center justify-center landing-btn-pixel hover:bg-muted transition-colors font-mono-landing font-bold text-lg"
+          className="w-12 h-12 landing-btn-outline rounded-xl text-primary flex items-center justify-center hover:text-foreground transition-colors font-mono-landing font-mono font-bold text-lg"
           aria-label="Terminal"
         >
-          &gt;_
+          {'>_'}
         </button>
       </div>
     </div>

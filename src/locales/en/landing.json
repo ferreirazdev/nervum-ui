@@ -1,0 +1,195 @@
+{
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "whoItsFor": "Who it's for",
+    "dashboard": "Dashboard",
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "hero": {
+    "titleLine1": "No more bookmarks.",
+    "titleLine2": "One place for everything.",
+    "subtitle": "Stop switching between GCP Console, GitHub, and Sentry. Nervum centralizes your cloud infrastructure, repositories, and application errors into a single management view — always in sync, always actionable.",
+    "requestAccess": "Request Early Access",
+    "bookDemo": "Book a Demo",
+    "toolsReplaced": "TOOLS REPLACED:",
+    "toolsReplacedValue": "GCP + GitHub + Sentry",
+    "environments": "ENVIRONMENTS:",
+    "environmentsValue": "4 active",
+    "lastDeploy": "LAST DEPLOY:",
+    "lastDeployValue": "3m ago"
+  },
+  "integrations": {
+    "integratesWith": "Integrates with"
+  },
+  "stats": {
+    "time": "3 min",
+    "timeLabel": "Time to connect your stack",
+    "tabs": "1 tab",
+    "tabsLabel": "For GCP, GitHub & Sentry",
+    "agents": "0 agents",
+    "agentsLabel": "No instrumentation needed"
+  },
+  "problem": {
+    "title": "The Bookmark Graveyard",
+    "subtitle": "Your team has 12 browser tabs open before they can answer one question. Context lives in different tools, and every incident starts with a scavenger hunt.",
+    "withoutNervum": "Without Nervum",
+    "withNervum": "With Nervum",
+    "before": [
+      {
+        "title": "GCP Console",
+        "text": "Every VM, database, and Cloud Run service lives in a different part of the console. Good luck getting the full picture."
+      },
+      {
+        "title": "GitHub, separately",
+        "text": "Open a second tab to see what just got deployed. Cross-reference commits manually. Repeat for every incident."
+      },
+      {
+        "title": "Sentry, in another tab",
+        "text": "An error is firing. But which service? Which team? Which commit caused it? Time to open more tabs."
+      }
+    ],
+    "after": [
+      {
+        "title": "Your Cloud, here",
+        "text": "Browse Compute VMs, Cloud SQL databases, and Cloud Run services — start, stop, and inspect them without leaving Nervum."
+      },
+      {
+        "title": "Your repos, here",
+        "text": "Commits, pull requests, and merges from every connected GitHub repository in a unified activity feed."
+      },
+      {
+        "title": "Your errors, here",
+        "text": "Sentry alerts linked to the service and team that owns them. Full context, zero tab-switching."
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "Integrate in minutes",
+    "subtitle": "Connect your tools once. Manage everything from one place, forever.",
+    "connect": {
+      "step": "01. Connect",
+      "text": "Link Google Cloud, GitHub, and Sentry via OAuth in under 3 minutes. No agents, no YAML, no SDK to install."
+    },
+    "map": {
+      "step": "02. Map",
+      "text": "Nervum builds an interactive map of your environments — services, databases, repos, and team ownership — and keeps it live."
+    },
+    "manage": {
+      "step": "03. Manage",
+      "text": "Start VMs, review SQL backups, trace a Sentry error to its commit, and check deployment status. All from one tab."
+    }
+  },
+  "features": {
+    "title": "Everything in one place",
+    "subtitle": "Replace the tabs. Nervum surfaces the data you need from every tool, in one management view.",
+    "environmentMaps": {
+      "category": "Architecture",
+      "title": "Environment Maps",
+      "description": "Visual, interactive graphs of your services, databases, and Cloud Run revisions — per environment, always current."
+    },
+    "activityFeed": {
+      "category": "Observability",
+      "title": "Unified Activity Feed",
+      "description": "GitHub commits, PRs, Cloud Build deploys, and Sentry errors. One feed, instead of four open tabs."
+    },
+    "gcpManagement": {
+      "category": "Cloud Ops",
+      "title": "GCP Management",
+      "description": "Browse and operate Compute VMs, Cloud SQL, and Cloud Run without opening the GCP Console. Start/stop, inspect, audit — right here."
+    },
+    "teamOwnership": {
+      "category": "Ownership",
+      "title": "Team Ownership",
+      "description": "Assign teams to services and environments. Every engineer knows who owns what — no Slack pinging required."
+    },
+    "accessControl": {
+      "category": "Security",
+      "title": "Access Control",
+      "description": "Per-environment RBAC. Control who sees which infrastructure. No over-sharing, no under-sharing."
+    },
+    "aiAssistant": {
+      "category": "AI",
+      "title": "AI Assistant",
+      "description": "Ask your stack questions in plain English. The built-in AI knows your environments, repos, and health status."
+    }
+  },
+  "automation": {
+    "title": "Replace your daily tabs",
+    "subtitle": "These are the workflows your team runs every day — now without switching tools.",
+    "incidentTriage": {
+      "title": "Incident Triage",
+      "description": "A Sentry error fires. See the service, the owning team, and the last GitHub commit — without opening a single extra tab."
+    },
+    "deployVerification": {
+      "title": "Deploy Verification",
+      "description": "A Cloud Build job finishes. Confirm which GitHub commit triggered it, which environment it hit, and whether the service is healthy."
+    },
+    "preReleaseAudit": {
+      "title": "Pre-Release Audit",
+      "description": "Before a release: verify Cloud SQL backups, check all VM states, and confirm environment status — from one screen."
+    }
+  },
+  "who": {
+    "title": "For teams tired of tab management",
+    "subtitle": "Whether you're a solo CTO or a 50-engineer team, Nervum gives you a single management view across your entire software stack.",
+    "ctos": {
+      "title": "CTOs & Tech Leads",
+      "text": "Stop asking 'which team owns this?' Nervum maps your entire infrastructure with team ownership baked in, so you get answers — not more tabs."
+    },
+    "founders": {
+      "title": "Early Founders",
+      "text": "You don't have a platform team yet. Nervum acts like one. GCP, GitHub, and Sentry centralized in a single view, from day one."
+    },
+    "teams": {
+      "title": "Engineering Teams",
+      "text": "Onboard new developers in hours. Every service, repo, and environment is mapped and searchable — no tribal knowledge needed."
+    }
+  },
+  "security": {
+    "title": "Enterprise-Grade Security",
+    "subtitle": "Your system data is sensitive. We take security seriously.",
+    "soc2": "Compliant",
+    "encryption": "Encryption at Rest",
+    "rbac": "RBAC Controls",
+    "readOnly": "Read-Only Access"
+  },
+  "socialProof": {
+    "title": "Trusted by engineering teams",
+    "subtitle": "Join forward-thinking companies using Nervum to scale with confidence.",
+    "testimonials": [
+      {
+        "quote": "Nervum gave us the visibility we desperately needed. Now we can see exactly what's connected to what and who owns it.",
+        "author": "Sarah Chen",
+        "role": "CTO at TechFlow",
+        "initials": "SC"
+      },
+      {
+        "quote": "The automation flows are a game-changer. Incidents now create tickets with full context automatically. Our MTTR dropped by 60%.",
+        "author": "Michael Rodriguez",
+        "role": "Tech Lead at DataScale",
+        "initials": "MR"
+      },
+      {
+        "quote": "We don't have a platform team yet, but Nervum makes us look like we do. It's like having an SRE in a box.",
+        "author": "Emma Thompson",
+        "role": "Founder at BuildFast",
+        "initials": "ET"
+      }
+    ]
+  },
+  "cta": {
+    "titleLine1": "Close the tabs.",
+    "titleLine2": "Open Nervum.",
+    "subtitle": "Connect your Google Cloud, GitHub, and Sentry in minutes. One management view for your entire software stack — no bookmarks required.",
+    "requestAccess": "Request Early Access",
+    "bookDemo": "Book a Demo"
+  },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "security": "Security",
+    "copyright": "\u00a9 2026 Nervum. Engineering Intelligence Platform."
+  }
+}

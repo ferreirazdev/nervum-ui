@@ -1,48 +1,135 @@
-/* Landing page – retro/terminal utilities. Scoped under .landing-page. Uses theme vars only. */
+/* Landing page – Nexus-inspired utilities. Scoped under .landing-page.
+   All colors reference theme.css CSS variables — no hardcoded hex values.
+   Change colors once in theme.css; they cascade here automatically.       */
 
 .landing-page {
-  --landing-grid-opacity: 0.03;
+  --font-display-landing: 'Inter', system-ui, sans-serif;
   --font-mono-landing: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-/* Mono font for headings/labels (JetBrains Mono loaded in index.html) */
+/* Display font for marketing titles/subtitles */
+.font-display-landing {
+  font-family: var(--font-display-landing);
+}
+
+/* Mono font kept for code/terminal elements */
 .landing-page .font-mono-landing {
   font-family: var(--font-mono-landing);
 }
 
-/* Page-level grid background (theme-aware) */
-.landing-page.landing-grid-bg {
-  background-color: var(--background);
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, var(--landing-grid-opacity)) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, var(--landing-grid-opacity)) 1px, transparent 1px);
-  background-size: 40px 40px;
+/* ─── Gradient text (hero title line 2, section accents) ─────────────────── */
+.landing-gradient-text {
+  background: linear-gradient(90deg, var(--nervum-accent-cyan) 0%, var(--nervum-primary-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.dark .landing-page.landing-grid-bg {
-  --landing-grid-opacity: 0.03;
+/* ─── Hero radial glow at the top ───────────────────────────────────────── */
+.landing-hero-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--nervum-secondary-blue) 8%, transparent) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* Pixel-dots texture overlay */
-.landing-page .landing-pixel-dots {
-  background-image: radial-gradient(var(--primary) 1px, transparent 0);
-  background-size: 10px 10px;
-  opacity: 0.15;
+/* ─── Hero visualization card glow ──────────────────────────────────────── */
+.landing-hero-card-glow {
+  box-shadow: 0 0 40px color-mix(in srgb, var(--nervum-secondary-blue) 6%, transparent);
 }
 
-/* Retro border: solid border + offset shadow */
-.landing-page .landing-retro-border {
+/* ─── Glassmorphism nav (applied when scrolled) ──────────────────────────── */
+.landing-nav-glass {
+  background: color-mix(in srgb, var(--background) 85%, transparent) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, transparent) !important;
+}
+
+/* ─── Nexus feature card ─────────────────────────────────────────────────── */
+.landing-card-nexus {
+  background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 4px 4px 0 var(--background);
+  border-radius: 16px;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+.landing-card-nexus:hover {
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  transform: translateY(-4px);
 }
 
-/* Button pixel shadow (primary CTA); active compresses shadow */
-.landing-page .landing-btn-pixel {
-  box-shadow: 3px 3px 0 var(--border);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+/* ─── Icon container (48×48) ─────────────────────────────────────────────── */
+.landing-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nervum-secondary-blue) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nervum-secondary-blue);
+  flex-shrink: 0;
 }
 
-.landing-page .landing-btn-pixel:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0 0 0 var(--border);
+/* ─── CTA section deep gradient background ───────────────────────────────── */
+.landing-cta-bg {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--nervum-secondary-blue) 6%, var(--background)) 0%,
+    var(--background) 100%
+  );
+}
+
+/* CTA radial glow overlay */
+.landing-cta-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--nervum-secondary-blue) 10%, transparent) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* ─── Pixel dots overlay (cyan) ──────────────────────────────────────────── */
+.landing-pixel-dots {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--nervum-accent-cyan) 40%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 10px 10px;
+}
+
+/* ─── Primary gradient button (hero CTA, final CTA) ──────────────────────── */
+.landing-btn-gradient {
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.landing-btn-gradient:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.landing-btn-gradient:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ─── Outline button (navbar CTA, floating terminal, secondary CTAs) ─────── */
+.landing-btn-outline {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--foreground) 25%, transparent);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.landing-btn-outline:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
