@@ -23,6 +23,7 @@ import {
   getDashboardGCloudBuilds,
   getDashboardGCloudDeploys,
   getDashboardGCloudServicesHealth,
+  isApiGCloudReconnectRequired,
   GCLOUD_RUN_REGIONS,
   type ApiStoredService,
   type ApiIntegration,
@@ -32,6 +33,7 @@ import {
   type DashboardGCloudDeploy,
   type DashboardGCloudServiceHealth,
 } from '@/lib/api';
+import { GCloudReconnectBanner } from '@/features/gcloud/components/GCloudReconnectBanner';
 import {
   Select,
   SelectContent,
@@ -77,6 +79,7 @@ export function ServicesPage() {
   const [gcloudServicesHealth, setGcloudServicesHealth] = useState<DashboardGCloudServiceHealth[]>([]);
   const [gcloudNeedsConfig, setGcloudNeedsConfig] = useState(false);
   const [gcloudOverviewError, setGcloudOverviewError] = useState<string | null>(null);
+  const [gcloudReconnectRequired, setGcloudReconnectRequired] = useState(false);
 
   const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
   const storedNames = new Set(stored.map((s) => s.service_name));
@@ -113,10 +116,14 @@ export function ServicesPage() {
     ]).then(([builds, deploys, health]) => {
       let needsConfig = false;
       let overviewError: string | null = null;
+      let reconnect = false;
       if (builds.status === 'fulfilled') {
         setGcloudBuilds(builds.value);
       } else {
-        if (builds.reason instanceof Error && builds.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        if (isApiGCloudReconnectRequired(builds.reason)) {
+          reconnect = true;
+          setGcloudBuilds([]);
+        } else if (builds.reason instanceof Error && builds.reason.message.includes(needsConfigMsg)) needsConfig = true;
         else {
           setGcloudBuilds([]);
           if (builds.reason instanceof Error && !overviewError) overviewError = builds.reason.message;
@@ -125,7 +132,10 @@ export function ServicesPage() {
       if (deploys.status === 'fulfilled') {
         setGcloudDeploys(deploys.value);
       } else {
-        if (deploys.reason instanceof Error && deploys.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        if (isApiGCloudReconnectRequired(deploys.reason)) {
+          reconnect = true;
+          setGcloudDeploys([]);
+        } else if (deploys.reason instanceof Error && deploys.reason.message.includes(needsConfigMsg)) needsConfig = true;
         else {
           setGcloudDeploys([]);
           if (deploys.reason instanceof Error && !overviewError) overviewError = deploys.reason.message;
@@ -134,14 +144,18 @@ export function ServicesPage() {
       if (health.status === 'fulfilled') {
         setGcloudServicesHealth(health.value);
       } else {
-        if (health.reason instanceof Error && health.reason.message.includes(needsConfigMsg)) needsConfig = true;
+        if (isApiGCloudReconnectRequired(health.reason)) {
+          reconnect = true;
+          setGcloudServicesHealth([]);
+        } else if (health.reason instanceof Error && health.reason.message.includes(needsConfigMsg)) needsConfig = true;
         else {
           setGcloudServicesHealth([]);
           if (health.reason instanceof Error && !overviewError) overviewError = health.reason.message;
         }
       }
+      setGcloudReconnectRequired(reconnect);
       setGcloudNeedsConfig(needsConfig);
-      setGcloudOverviewError(needsConfig ? null : overviewError);
+      setGcloudOverviewError(needsConfig || reconnect ? null : overviewError);
       if (needsConfig) {
         setGcloudBuilds([]);
         setGcloudDeploys([]);
@@ -236,6 +250,8 @@ export function ServicesPage() {
           {message.text}
         </div>
       )}
+
+      {hasGCloud && gcloudReconnectRequired && <GCloudReconnectBanner className="max-w-4xl" />}
 
       {hasGCloud && gcloudNeedsConfig && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">

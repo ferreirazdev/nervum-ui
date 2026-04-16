@@ -22,12 +22,14 @@ import {
   getGCloudSQLDatabases,
   getGCloudSQLBackupRuns,
   getIntegrations,
+  isApiGCloudReconnectRequired,
   type ApiStoredService,
   type ApiIntegration,
   type GCloudSQLInstance,
   type GCloudSQLDatabase,
   type GCloudSQLBackupRun,
 } from '@/lib/api';
+import { GCloudReconnectBanner } from '@/features/gcloud/components/GCloudReconnectBanner';
 
 function instanceShortName(instance: GCloudSQLInstance): string {
   const name = instance.name ?? '';
@@ -62,6 +64,7 @@ export function CloudSQLPage() {
   const [overviewBackups, setOverviewBackups] = useState<GCloudSQLBackupRun[]>([]);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewNeedsConfig, setOverviewNeedsConfig] = useState(false);
+  const [gcloudReconnectRequired, setGcloudReconnectRequired] = useState(false);
 
   const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
   const storedKeys = new Set(stored.map((s) => storedKey(s.service_name, s.location)));
@@ -97,17 +100,24 @@ export function CloudSQLPage() {
     }
     setOverviewLoading(true);
     setOverviewNeedsConfig(false);
+    setGcloudReconnectRequired(false);
     getGCloudSQLInstances(orgId)
       .then((res) => {
         const list = res.items ?? [];
         setOverviewInstances(list);
         const first = list[0];
         setOverviewSelectedName(first ? instanceShortName(first) : null);
+        setGcloudReconnectRequired(false);
       })
       .catch((e) => {
         setOverviewInstances([]);
         setOverviewSelectedName(null);
-        if (e instanceof Error && e.message.includes('project_id')) setOverviewNeedsConfig(true);
+        if (isApiGCloudReconnectRequired(e)) {
+          setGcloudReconnectRequired(true);
+          setOverviewNeedsConfig(false);
+        } else if (e instanceof Error && e.message.includes('project_id')) {
+          setOverviewNeedsConfig(true);
+        }
       })
       .finally(() => setOverviewLoading(false));
   }, [orgId, hasGCloud]);
@@ -225,6 +235,8 @@ export function CloudSQLPage() {
           {message.text}
         </div>
       )}
+
+      {hasGCloud && gcloudReconnectRequired && <GCloudReconnectBanner className="max-w-4xl" />}
 
       {hasGCloud && overviewNeedsConfig && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">

@@ -23,6 +23,7 @@ import { FeatureCard } from '../components/FeatureCard';
 import { AutomationFlow } from '../components/AutomationFlow';
 import { BeforeAfter } from '../components/BeforeAfter';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { LandingPricing } from '../components/LandingPricing';
 import { Button } from '@/app/components/ui/button';
 import { AppLogo } from '@/app/components/AppLogo';
 import { useAuth } from '@/features/auth';
@@ -70,6 +71,9 @@ export function LandingPage() {
             <a href="#who" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
               {t('nav.whoItsFor')}
             </a>
+            <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:inline">
+              {t('nav.pricing')}
+            </a>
             <LanguageSwitcher />
             {user ? (
               <Button asChild className="landing-btn-gradient rounded-xl px-5 py-2.5 text-sm font-semibold">
@@ -81,7 +85,7 @@ export function LandingPage() {
                   <Link to="/login">{t('nav.signIn')}</Link>
                 </Button>
                 <Button asChild className="landing-btn-outline rounded-xl px-5 py-2.5 text-sm font-semibold">
-                  <Link to="/register">{t('nav.getStarted')}</Link>
+                  <Link to="/#pricing">{t('nav.getStarted')}</Link>
                 </Button>
               </>
             )}
@@ -133,13 +137,16 @@ export function LandingPage() {
               className="flex flex-col sm:flex-row justify-center gap-4 mb-20"
             >
               <Button asChild size="lg" className="landing-btn-gradient rounded-xl px-8 py-4 font-semibold text-base">
-                <Link to="/register">
+                <Link to="/#pricing">
                   {t('hero.requestAccess')}
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="landing-btn-outline rounded-xl px-8 py-4 font-semibold text-base border-white/25 text-foreground hover:bg-transparent">
                 {t('hero.bookDemo')}
+              </Button>
+              <Button asChild size="lg" variant="ghost" className="rounded-xl px-8 py-4 font-semibold text-base text-muted-foreground hover:text-foreground">
+                <Link to="/register">{t('nav.registerFree')}</Link>
               </Button>
             </motion.div>
 
@@ -201,6 +208,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <LandingPricing />
 
       {/* The Problem Section */}
       <section id="problem" className="py-24 border-b border-border bg-muted/30">
@@ -579,7 +588,7 @@ export function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg" className="landing-btn-gradient rounded-xl px-10 py-5 font-semibold text-lg">
-                <Link to="/register">
+                <Link to="/#pricing">
                   {t('cta.requestAccess')}
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>

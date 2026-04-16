@@ -19,6 +19,7 @@ import { StatusBadge } from '@/app/components/ui/status-badge';
 import { DataLoading } from '@/app/components/ui/data-loading';
 import { DataError } from '@/app/components/ui/data-error';
 import { formatRelativeTime } from '@/lib/format';
+import { GCloudReconnectBanner } from '@/features/gcloud/components/GCloudReconnectBanner';
 import { useGCloudSection, type GCloudView, type OverviewTab } from '../hooks/useGCloudSection';
 
 interface Props {
@@ -33,6 +34,7 @@ export function GoogleCloudCard({ orgId }: Props) {
     setOverviewTab,
     overviewLoading,
     overviewError,
+    gcloudReconnectRequired,
     refetchCurrentView,
     builds,
     deploys,
@@ -49,6 +51,7 @@ export function GoogleCloudCard({ orgId }: Props) {
 
   return (
     <>
+      {gcloudReconnectRequired && <GCloudReconnectBanner className="mb-4" />}
       {needsConfig && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
           <p className="text-sm text-amber-800 dark:text-amber-200">
@@ -100,7 +103,7 @@ export function GoogleCloudCard({ orgId }: Props) {
           </div>
         </CardHeader>
         <CardContent className="relative pt-0 p-4 min-h-0 max-h-[260px] overflow-y-auto">
-          {gcloudView === 'overview' && overviewError && !needsConfig ? (
+          {gcloudView === 'overview' && overviewError && !needsConfig && !gcloudReconnectRequired ? (
             <DataError message={overviewError} onRetry={refetchCurrentView} className="my-2" />
           ) : null}
           {gcloudView === 'overview' && !overviewError && (

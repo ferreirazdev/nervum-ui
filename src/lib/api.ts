@@ -28,8 +28,40 @@ export type ApiOrganization = {
   description?: string;
   website?: string;
   owner_id?: string;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  subscription_status?: string;
+  trial_ends_at?: string | null;
+  current_period_end?: string | null;
+  billing_plan_id?: string | null;
   created_at: string;
   updated_at: string;
+};
+
+// ─── Billing / Stripe ───────────────────────────────────────────────────────
+
+export type BillingPlan = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  stripe_price_id: string;
+  currency: string;
+  price_interval: string;
+  display_amount_cents?: number | null;
+  features?: unknown;
+  active?: boolean;
+  sort_order?: number;
+};
+
+export type BillingSubscription = {
+  organization_id: string;
+  subscription_status: string;
+  trial_ends_at?: string | null;
+  current_period_end?: string | null;
+  plan_slug?: string;
+  plan_name?: string;
+  is_owner: boolean;
 };
 
 export type CreateOrganizationInput = {
@@ -336,7 +368,27 @@ export type DashboardSentryRelease = {
 
 // ─── Core fetch ──────────────────────────────────────────────────────────────
 
-type ApiError = { error: string };
+type ApiErrorBody = { error?: string; code?: string };
+
+/** Backend integration error: Google Cloud OAuth must be reconnected (see README / Integrations UI). */
+export const GCLOUD_RECONNECT_REQUIRED_CODE = 'gcloud_reconnect_required';
+
+export class ApiRequestError extends Error {
+  readonly status: number;
+  readonly code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+    this.code = code;
+    Object.setPrototypeOf(this, ApiRequestError.prototype);
+  }
+}
+
+export function isApiGCloudReconnectRequired(err: unknown): boolean {
+  return err instanceof ApiRequestError && err.code === GCLOUD_RECONNECT_REQUIRED_CODE;
+}
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const base = getApiBase();
@@ -349,8 +401,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   });
 
   if (!res.ok) {
-    const body: ApiError = await res.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(body.error ?? `HTTP ${res.status}`);
+    const body = (await res.json().catch(() => ({}))) as ApiErrorBody;
+    throw new ApiRequestError(body.error ?? `HTTP ${res.status}`, res.status, body.code);
   }
 
   if (res.status === 204) return undefined as T;
@@ -403,6 +455,145 @@ export function createOrganization(input: CreateOrganizationInput): Promise<ApiO
 
 export function getOrganization(id: string): Promise<ApiOrganization> {
   return apiFetch<ApiOrganization>(`/organizations/${id}`);
+}
+
+export function listBillingPlans(): Promise<BillingPlan[]> {
+  return apiFetch<BillingPlan[]>('/billing/plans');
+}
+
+export function createBillingCheckoutSession(planSlug: string): Promise<{ url: string }> {
+  return apiFetch<{ url: string }>('/billing/checkout-session', {
+    method: 'POST',
+    body: JSON.stringify({ plan_slug: planSlug }),
+  });
+}
+
+export function confirmBillingCheckoutSession(sessionId: string): Promise<{ ok: boolean; subscription_status?: string }> {
+  return apiFetch('/billing/confirm-session', {
+    method: 'POST',
+    body: JSON.stringify({ session_id: sessionId }),
+  });
+}
+
+export function createBillingPortalSession(): Promise<{ url: string }> {
+  return apiFetch<{ url: string }>('/billing/portal-session', { method: 'POST' });
+}
+
+export function getBillingSubscription(): Promise<BillingSubscription> {
+  return apiFetch<BillingSubscription>('/billing/subscription');
+}
+
+// ─── Internal admin (email allowlist on server) ───────────────────────────
+
+export function getInternalAdminStatus(): Promise<{ ok: boolean }> {
+  return apiFetch<{ ok: boolean }>('/internal/admin/status');
+}
+
+export function listInternalPlans(): Promise<BillingPlan[]> {
+  return apiFetch<BillingPlan[]>('/internal/plans');
+}
+
+export type InternalAdminCreatePlanInput = {
+  slug: string;
+  name: string;
+  description?: string;
+  stripe_price_id: string;
+  currency?: string;
+  price_interval?: string;
+  display_amount_cents?: number | null;
+  features?: unknown;
+  active?: boolean;
+  sort_order?: number;
+};
+
+export function createInternalPlan(input: InternalAdminCreatePlanInput): Promise<BillingPlan> {
+  return apiFetch<BillingPlan>('/internal/plans', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export type InternalAdminUpdatePlanInput = Partial<
+  Pick<
+    BillingPlan,
+    'slug' | 'name' | 'description' | 'stripe_price_id' | 'currency' | 'price_interval' | 'display_amount_cents' | 'active' | 'sort_order'
+  >
+> & { features?: unknown };
+
+export function updateInternalPlan(id: string, input: InternalAdminUpdatePlanInput): Promise<BillingPlan> {
+  return apiFetch<BillingPlan>(`/internal/plans/${id}`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
+export function deleteInternalPlan(id: string): Promise<void> {
+  return apiFetch<void>(`/internal/plans/${id}`, { method: 'DELETE' });
+}
+
+export type InternalAdminUsersResponse = { users: User[]; total: number };
+
+export function listInternalUsers(params?: { limit?: number; offset?: number }): Promise<InternalAdminUsersResponse> {
+  const q = new URLSearchParams();
+  if (params?.limit != null) q.set('limit', String(params.limit));
+  if (params?.offset != null) q.set('offset', String(params.offset));
+  const s = q.toString();
+  return apiFetch<InternalAdminUsersResponse>(`/internal/users${s ? `?${s}` : ''}`);
+}
+
+export function getInternalUser(id: string): Promise<User> {
+  return apiFetch<User>(`/internal/users/${id}`);
+}
+
+export type InternalAdminUpdateUserInput = {
+  name?: string;
+  organization_id?: string | null;
+  role?: string;
+  onboarding?: boolean;
+};
+
+export function updateInternalUser(id: string, input: InternalAdminUpdateUserInput): Promise<User> {
+  return apiFetch<User>(`/internal/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      ...input,
+      organization_id: input.organization_id === '' ? null : input.organization_id,
+    }),
+  });
+}
+
+export type InternalAdminOrganizationsResponse = { organizations: ApiOrganization[]; total: number };
+
+export function listInternalOrganizations(params?: {
+  limit?: number;
+  offset?: number;
+}): Promise<InternalAdminOrganizationsResponse> {
+  const q = new URLSearchParams();
+  if (params?.limit != null) q.set('limit', String(params.limit));
+  if (params?.offset != null) q.set('offset', String(params.offset));
+  const s = q.toString();
+  return apiFetch<InternalAdminOrganizationsResponse>(`/internal/organizations${s ? `?${s}` : ''}`);
+}
+
+export function getInternalOrganization(id: string): Promise<ApiOrganization> {
+  return apiFetch<ApiOrganization>(`/internal/organizations/${id}`);
+}
+
+export type InternalAdminUpdateOrganizationInput = {
+  name?: string;
+  description?: string;
+  website?: string;
+  owner_id?: string | null;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  billing_plan_id?: string | null;
+  subscription_status?: string;
+  trial_ends_at?: string | null;
+  current_period_end?: string | null;
+};
+
+export function updateInternalOrganization(
+  id: string,
+  input: InternalAdminUpdateOrganizationInput,
+): Promise<ApiOrganization> {
+  return apiFetch<ApiOrganization>(`/internal/organizations/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  });
 }
 
 export function updateOrganization(id: string, input: UpdateOrganizationInput): Promise<ApiOrganization> {

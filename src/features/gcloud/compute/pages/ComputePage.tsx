@@ -20,10 +20,12 @@ import {
   postGCloudComputeInstanceStart,
   postGCloudComputeInstanceStop,
   getIntegrations,
+  isApiGCloudReconnectRequired,
   type ApiStoredService,
   type ApiIntegration,
   type GCloudComputeInstance,
 } from '@/lib/api';
+import { GCloudReconnectBanner } from '@/features/gcloud/components/GCloudReconnectBanner';
 
 function zoneFromInstance(instance: GCloudComputeInstance): string {
   const z = instance.zone ?? '';
@@ -61,6 +63,7 @@ export function ComputePage() {
   const [overviewInstances, setOverviewInstances] = useState<GCloudComputeInstance[]>([]);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewNeedsConfig, setOverviewNeedsConfig] = useState(false);
+  const [gcloudReconnectRequired, setGcloudReconnectRequired] = useState(false);
 
   const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
   const instanceKey = (inst: GCloudComputeInstance) => `${zoneFromInstance(inst)}/${inst.name ?? ''}`;
@@ -96,11 +99,20 @@ export function ComputePage() {
     }
     setOverviewLoading(true);
     setOverviewNeedsConfig(false);
+    setGcloudReconnectRequired(false);
     getGCloudComputeInstances(orgId)
-      .then((res) => setOverviewInstances(flattenAggregatedItems(res.items)))
+      .then((res) => {
+        setOverviewInstances(flattenAggregatedItems(res.items));
+        setGcloudReconnectRequired(false);
+      })
       .catch((e) => {
         setOverviewInstances([]);
-        if (e instanceof Error && e.message.includes('project_id')) setOverviewNeedsConfig(true);
+        if (isApiGCloudReconnectRequired(e)) {
+          setGcloudReconnectRequired(true);
+          setOverviewNeedsConfig(false);
+        } else if (e instanceof Error && e.message.includes('project_id')) {
+          setOverviewNeedsConfig(true);
+        }
       })
       .finally(() => setOverviewLoading(false));
   }, [orgId, hasGCloud]);
@@ -240,6 +252,8 @@ export function ComputePage() {
           {message.text}
         </div>
       )}
+
+      {hasGCloud && gcloudReconnectRequired && <GCloudReconnectBanner className="max-w-4xl" />}
 
       {hasGCloud && overviewNeedsConfig && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">

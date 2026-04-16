@@ -1,0 +1,6 @@
+{
+  "gcloudReconnect": {
+    "message": "Your Google Cloud connection needs to be renewed. Disconnect and connect again in Integrations.",
+    "cta": "Open Integrations"
+  }
+}

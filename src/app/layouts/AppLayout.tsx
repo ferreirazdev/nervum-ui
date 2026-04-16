@@ -5,7 +5,15 @@ import { GlobalChat } from '@/features/chat';
 import { Toaster } from '@/app/components/ui/sonner';
 
 function isDashboardRoute(pathname: string): boolean {
-  if (pathname === '/dashboard' || pathname === '/organization' || pathname === '/profile' || pathname === '/teams') return true;
+  if (
+    pathname === '/dashboard' ||
+    pathname === '/billing' ||
+    pathname === '/internal' ||
+    pathname === '/organization' ||
+    pathname === '/profile' ||
+    pathname === '/teams'
+  )
+    return true;
   if (pathname === '/users' || pathname === '/integrations' || pathname === '/repositories') return true;
   if (pathname.startsWith('/gcloud')) return true;
   return pathname === '/environments' || pathname.startsWith('/environments/');

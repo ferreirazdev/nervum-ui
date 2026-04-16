@@ -3,9 +3,11 @@
     "features": "Funcionalidades",
     "howItWorks": "Como funciona",
     "whoItsFor": "Para quem",
+    "pricing": "Planos",
     "dashboard": "Painel",
     "signIn": "Entrar",
-    "getStarted": "Comece agora"
+    "getStarted": "Comece agora",
+    "registerFree": "Criar conta (sem plano ainda)"
   },
   "hero": {
     "titleLine1": "O sistema nervoso da sua aplica\u00e7\u00e3o.",
@@ -22,6 +24,17 @@
   },
   "integrations": {
     "integratesWith": "Integra com"
+  },
+  "pricing": {
+    "title": "Planos e preços",
+    "subtitle": "Escolha o plano para o seu time. Pagamento seguro com Stripe.",
+    "trialNote": "15 dias grátis em todos os planos.",
+    "perMonth": "/ mês",
+    "choosePlan": "Começar",
+    "noPlans": "Nenhum plano disponível. Peça ao administrador para configurar os preços no Stripe.",
+    "loading": "Carregando planos…",
+    "error": "Não foi possível carregar os planos. Tente novamente mais tarde.",
+    "registerWithoutPlan": "Criar conta sem escolher um plano (você pode assinar depois)"
   },
   "stats": {
     "time": "3 min",

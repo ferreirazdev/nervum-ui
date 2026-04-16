@@ -1,6 +1,19 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LayoutDashboard, Building2, Map, User, UsersRound, Users, Plug, BookMarked } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Building2,
+  Map,
+  User,
+  UsersRound,
+  Users,
+  Plug,
+  BookMarked,
+  CreditCard,
+  Shield,
+} from 'lucide-react';
 import { useAuth } from '@/features/auth';
+import { getBillingSubscription, getInternalAdminStatus } from '@/lib/api';
 import {
   Sidebar,
   SidebarHeader,
@@ -42,6 +55,44 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showBilling, setShowBilling] = useState(false);
+  const [showInternalAdmin, setShowInternalAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user?.organization_id) {
+      setShowBilling(false);
+      return;
+    }
+    let cancelled = false;
+    getBillingSubscription()
+      .then((s) => {
+        if (!cancelled) setShowBilling(s.is_owner);
+      })
+      .catch(() => {
+        if (!cancelled) setShowBilling(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.organization_id]);
+
+  useEffect(() => {
+    if (!user) {
+      setShowInternalAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    getInternalAdminStatus()
+      .then(() => {
+        if (!cancelled) setShowInternalAdmin(true);
+      })
+      .catch(() => {
+        if (!cancelled) setShowInternalAdmin(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   return (
     <Sidebar side="left" collapsible="icon">
@@ -75,6 +126,34 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
+              )}
+              {showBilling && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === '/billing'}
+                    tooltip="Billing"
+                  >
+                    <Link to="/billing">
+                      <CreditCard className="size-4" />
+                      <span>Billing</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {showInternalAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === '/internal'}
+                    tooltip="Internal admin"
+                  >
+                    <Link to="/internal">
+                      <Shield className="size-4" />
+                      <span>Internal</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarGroupContent>

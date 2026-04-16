@@ -1,0 +1,6 @@
+{
+  "gcloudReconnect": {
+    "message": "Sua conexão com o Google Cloud precisa ser renovada. Desconecte e conecte novamente em Integrações.",
+    "cta": "Abrir Integrações"
+  }
+}

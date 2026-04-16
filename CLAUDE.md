@@ -43,7 +43,7 @@ Each feature owns its pages, components, hooks, and local utilities. Major featu
 
 ### API Layer (`src/lib/`)
 
-- `api.ts` — central API client; all backend calls go through `apiFetch<T>(path, init)` which handles auth headers and JSON. Covers auth, orgs, environments, entities, relationships, teams, users, invitations, dashboard stats, and GCloud resources.
+- `api.ts` — central API client; all backend calls go through `apiFetch<T>(path, init)` which handles auth headers and JSON. Covers auth, orgs, environments, entities, relationships, teams, users, invitations, dashboard stats, GCloud resources, and billing (`/billing/plans`, checkout, portal, subscription).
 - `api-base.ts` — `getApiBase()` resolves the backend URL from `VITE_API_BASE_URL`.
 - `api/gcloud.ts` — GCloud-specific calls.
 - `permissions.ts` — role-based access control helpers.

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Button } from '@/app/components/ui/button';
 import {
   Card,
@@ -22,6 +22,8 @@ import { Input } from '@/app/components/ui/input';
 import { useAuth } from '../context';
 import { AppLogo } from '@/app/components/AppLogo';
 import { MapPageDemo } from '@/features/map';
+import { listBillingPlans } from '@/lib/api';
+import { persistSelectedPlanSlug } from '@/lib/selected-plan';
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -55,13 +57,48 @@ type RegisterFormValues = {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [planGate, setPlanGate] = useState<'loading' | 'ok' | 'bad'>('loading');
+  const [planSlugFromUrl, setPlanSlugFromUrl] = useState<string | null>(null);
   const form = useForm<RegisterFormValues>({
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   });
 
   const password = form.watch('password');
+
+  useEffect(() => {
+    const slug = searchParams.get('plan')?.trim() || null;
+    if (!slug) {
+      setPlanSlugFromUrl(null);
+      setPlanGate('ok');
+      return;
+    }
+    let cancelled = false;
+    listBillingPlans()
+      .then((plans) => {
+        if (cancelled) return;
+        const ok = plans.some((p) => p.slug === slug);
+        if (!ok) {
+          setPlanGate('bad');
+          navigate('/#pricing', { replace: true });
+          return;
+        }
+        persistSelectedPlanSlug(slug);
+        setPlanSlugFromUrl(slug);
+        setPlanGate('ok');
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPlanGate('bad');
+          navigate('/#pricing', { replace: true });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, navigate]);
 
   async function onSubmit(values: RegisterFormValues) {
     setError(null);
@@ -71,6 +108,14 @@ export function RegisterPage() {
     } catch (e) {
       setError('Registration failed. This email may already be in use.');
     }
+  }
+
+  if (planGate !== 'ok') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground text-sm">
+        {planGate === 'loading' ? 'Loading…' : 'Redirecting…'}
+      </div>
+    );
   }
 
   return (
@@ -85,7 +130,11 @@ export function RegisterPage() {
             <Card className="w-full rounded-xl border border-border bg-card shadow-sm">
               <CardHeader className="space-y-1 text-center">
                 <CardTitle className="text-2xl">Create an account</CardTitle>
-                <CardDescription>Enter your details to register.</CardDescription>
+                <CardDescription>
+                  {planSlugFromUrl
+                    ? 'Enter your details to register. You will continue to checkout after creating your organization.'
+                    : 'Enter your details to register. You can choose a plan later from the app; some features stay locked until you subscribe.'}
+                </CardDescription>
               </CardHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>

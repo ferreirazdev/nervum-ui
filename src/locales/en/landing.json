@@ -3,9 +3,11 @@
     "features": "Features",
     "howItWorks": "How it works",
     "whoItsFor": "Who it's for",
+    "pricing": "Pricing",
     "dashboard": "Dashboard",
     "signIn": "Sign in",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "registerFree": "Create account (no plan yet)"
   },
   "hero": {
     "titleLine1": "The nervous system for your stack.",
@@ -22,6 +24,17 @@
   },
   "integrations": {
     "integratesWith": "Integrates with"
+  },
+  "pricing": {
+    "title": "Plans & pricing",
+    "subtitle": "Pick the plan that fits your team. Billing is secure via Stripe.",
+    "trialNote": "15-day free trial on every plan.",
+    "perMonth": "/ month",
+    "choosePlan": "Get started",
+    "noPlans": "No plans are available yet. Ask your administrator to configure Stripe prices.",
+    "loading": "Loading plans…",
+    "error": "Could not load plans. Please try again later.",
+    "registerWithoutPlan": "Create an account without choosing a plan (you can subscribe later)"
   },
   "stats": {
     "time": "3 min",

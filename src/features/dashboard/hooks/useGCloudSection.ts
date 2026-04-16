@@ -3,6 +3,7 @@ import {
   getDashboardGCloudBuilds,
   getDashboardGCloudDeploys,
   getDashboardGCloudServicesHealth,
+  isApiGCloudReconnectRequired,
   type DashboardGCloudBuild,
   type DashboardGCloudDeploy,
   type DashboardGCloudServiceHealth,
@@ -34,6 +35,7 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
   const [health, setHealth] = useState<DashboardGCloudServiceHealth[]>([]);
   const [needsConfig, setNeedsConfig] = useState(false);
   const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [gcloudReconnectRequired, setGcloudReconnectRequired] = useState(false);
   const [cloudRunRefreshKey, setCloudRunRefreshKey] = useState(0);
   const [cloudSqlRefreshKey, setCloudSqlRefreshKey] = useState(0);
   const [computeRefreshKey, setComputeRefreshKey] = useState(0);
@@ -49,6 +51,7 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
     const needsConfigMsg = 'project_id';
     setOverviewLoading(true);
     setOverviewError(null);
+    setGcloudReconnectRequired(false);
     const run = () => {
       if (overviewTab === 'build') {
         return getDashboardGCloudBuilds(orgId)
@@ -56,14 +59,21 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
             setBuilds(data);
             setNeedsConfig(false);
             setOverviewError(null);
+            setGcloudReconnectRequired(false);
           })
           .catch((e) => {
             setBuilds([]);
-            if (e instanceof Error && e.message.includes(needsConfigMsg)) {
+            if (isApiGCloudReconnectRequired(e)) {
+              setGcloudReconnectRequired(true);
+              setNeedsConfig(false);
+              setOverviewError(null);
+            } else if (e instanceof Error && e.message.includes(needsConfigMsg)) {
               setNeedsConfig(true);
               setOverviewError(null);
+              setGcloudReconnectRequired(false);
             } else {
               setNeedsConfig(false);
+              setGcloudReconnectRequired(false);
               setOverviewError(e instanceof Error ? e.message : 'Failed to load builds');
             }
           });
@@ -74,14 +84,21 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
             setDeploys(data);
             setNeedsConfig(false);
             setOverviewError(null);
+            setGcloudReconnectRequired(false);
           })
           .catch((e) => {
             setDeploys([]);
-            if (e instanceof Error && e.message.includes(needsConfigMsg)) {
+            if (isApiGCloudReconnectRequired(e)) {
+              setGcloudReconnectRequired(true);
+              setNeedsConfig(false);
+              setOverviewError(null);
+            } else if (e instanceof Error && e.message.includes(needsConfigMsg)) {
               setNeedsConfig(true);
               setOverviewError(null);
+              setGcloudReconnectRequired(false);
             } else {
               setNeedsConfig(false);
+              setGcloudReconnectRequired(false);
               setOverviewError(e instanceof Error ? e.message : 'Failed to load deploys');
             }
           });
@@ -91,14 +108,21 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
           setHealth(data);
           setNeedsConfig(false);
           setOverviewError(null);
+          setGcloudReconnectRequired(false);
         })
         .catch((e) => {
           setHealth([]);
-          if (e instanceof Error && e.message.includes(needsConfigMsg)) {
+          if (isApiGCloudReconnectRequired(e)) {
+            setGcloudReconnectRequired(true);
+            setNeedsConfig(false);
+            setOverviewError(null);
+          } else if (e instanceof Error && e.message.includes(needsConfigMsg)) {
             setNeedsConfig(true);
             setOverviewError(null);
+            setGcloudReconnectRequired(false);
           } else {
             setNeedsConfig(false);
+            setGcloudReconnectRequired(false);
             setOverviewError(e instanceof Error ? e.message : 'Failed to load service health');
           }
         });
@@ -109,8 +133,14 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
   useEffect(() => {
     if (!orgId || gcloudView !== 'cloud_run') return;
     getGCloudServices(orgId)
-      .then((res) => setCloudRunServices(res.services ?? []))
-      .catch(() => setCloudRunServices([]));
+      .then((res) => {
+        setCloudRunServices(res.services ?? []);
+        setGcloudReconnectRequired(false);
+      })
+      .catch((e) => {
+        setCloudRunServices([]);
+        if (isApiGCloudReconnectRequired(e)) setGcloudReconnectRequired(true);
+      });
   }, [orgId, gcloudView, cloudRunRefreshKey]);
 
   useEffect(() => {
@@ -120,8 +150,12 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
         const instances = res.items ?? [];
         setSqlInstances(instances);
         setSelectedSqlInstance(instances[0]?.name ?? null);
+        setGcloudReconnectRequired(false);
       })
-      .catch(() => setSqlInstances([]));
+      .catch((e) => {
+        setSqlInstances([]);
+        if (isApiGCloudReconnectRequired(e)) setGcloudReconnectRequired(true);
+      });
   }, [orgId, gcloudView, cloudSqlRefreshKey]);
 
   useEffect(() => {
@@ -141,8 +175,12 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
       .then((res) => {
         const instances = Object.values(res.items ?? {}).flatMap((zone) => zone.instances ?? []);
         setComputeInstances(instances);
+        setGcloudReconnectRequired(false);
       })
-      .catch(() => setComputeInstances([]));
+      .catch((e) => {
+        setComputeInstances([]);
+        if (isApiGCloudReconnectRequired(e)) setGcloudReconnectRequired(true);
+      });
   }, [orgId, gcloudView, computeRefreshKey]);
 
   const refetchOverview = useCallback(() => setOverviewRefreshKey((k) => k + 1), []);
@@ -160,6 +198,7 @@ export function useGCloudSection(orgId: string | undefined, enabled: boolean) {
     setOverviewTab,
     overviewLoading,
     overviewError,
+    gcloudReconnectRequired,
     refetchOverview,
     refetchCurrentView,
     builds,

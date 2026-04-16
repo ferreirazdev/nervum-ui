@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Check, ExternalLink, Github, Cloud, Search } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import {
@@ -14,11 +15,17 @@ import {
   getGitHubRepos,
   getStoredRepositories,
   addStoredRepository,
+  getMe,
+  getBillingSubscription,
+  createBillingCheckoutSession,
+  confirmBillingCheckoutSession,
   type ApiOrganization,
   type ApiIntegration,
   type ApiGitHubRepo,
   type ApiStoredRepository,
 } from '@/lib/api';
+import { readSelectedPlanSlug } from '@/lib/selected-plan';
+import { isStaffBypassSubscription } from '@/lib/billing-access';
 import { getIntegrationConnectUrl } from '@/lib/integrations';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -28,6 +35,7 @@ const TOTAL_STEPS = 4;
 
 export function OnboardingPage() {
   const navigate = useNavigate();
+  const { t: tb } = useTranslation('billing');
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading, refreshUser } = useAuth();
   const [step, setStep] = useState(0);
@@ -74,6 +82,41 @@ export function OnboardingPage() {
 
   // OAuth return: ?github=connected -> go to step 2 (Import repos); ?gcloud=connected -> set onboarding true and redirect
   useEffect(() => {
+    const billing = searchParams.get('billing');
+    const sessionId = searchParams.get('session_id');
+    if (billing === 'success' && sessionId) {
+      setError(null);
+      void (async () => {
+        try {
+          await confirmBillingCheckoutSession(sessionId);
+          setSearchParams({}, { replace: true });
+          await refreshUser();
+          if (user?.onboarding) {
+            navigate('/dashboard', { replace: true });
+            return;
+          }
+          const u = await getMe();
+          if (u.organization_id) {
+            const o = await getOrganization(u.organization_id);
+            setOrg(o);
+          }
+          setStep(1);
+        } catch (e) {
+          setSearchParams({}, { replace: true });
+          setError(e instanceof Error ? e.message : 'Billing confirmation failed');
+          if (user?.onboarding) {
+            navigate('/dashboard', { replace: true });
+          }
+        }
+      })();
+      return;
+    }
+    if (billing === 'cancel') {
+      setSearchParams({}, { replace: true });
+      setError(tb('checkoutCanceled'));
+      return;
+    }
+
     const github = searchParams.get('github');
     const gcloud = searchParams.get('gcloud');
     const err = searchParams.get('error');
@@ -101,7 +144,7 @@ export function OnboardingPage() {
           .catch((e) => setError(e instanceof Error ? e.message : 'Failed to complete onboarding'));
       }
     }
-  }, [searchParams, setSearchParams, navigate, user, refreshUser]);
+  }, [searchParams, setSearchParams, navigate, user, refreshUser, tb]);
 
   // Load GitHub repos and stored repos when on step 3 (Import repositories)
   useEffect(() => {
@@ -126,25 +169,46 @@ export function OnboardingPage() {
   useEffect(() => {
     if (resumeDoneRef.current || !orgLoaded || !user || user.onboarding) return;
     const orgId = user.organization_id ?? null;
-    const hasGitHub = integrations.some((i) => i.provider === 'github');
-    const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
     if (!orgId) {
       resumeDoneRef.current = true;
       return;
     }
-    if (!hasGitHub) {
-      setStep(1);
+    let cancelled = false;
+    void (async () => {
+      let orgSnap = org;
+      if (!orgSnap || orgSnap.id !== orgId) {
+        try {
+          orgSnap = await getOrganization(orgId);
+          if (cancelled) return;
+          setOrg(orgSnap);
+        } catch {
+          resumeDoneRef.current = true;
+          return;
+        }
+      }
+      if (cancelled) return;
+      const hasGitHub = integrations.some((i) => i.provider === 'github');
+      const hasGCloud = integrations.some((i) => i.provider === 'gcloud');
+      if (!hasGitHub) {
+        setStep(1);
+        resumeDoneRef.current = true;
+        return;
+      }
       resumeDoneRef.current = true;
-      return;
-    }
-    resumeDoneRef.current = true;
-    getStoredRepositories(orgId)
-      .then((repos) => {
-        const firstIncomplete = hasGCloud ? 3 : repos.length > 0 ? 3 : 2;
-        setStep(firstIncomplete);
-      })
-      .catch(() => setStep(2));
-  }, [orgLoaded, user, integrations]);
+      getStoredRepositories(orgId)
+        .then((repos) => {
+          if (cancelled) return;
+          const firstIncomplete = hasGCloud ? 3 : repos.length > 0 ? 3 : 2;
+          setStep(firstIncomplete);
+        })
+        .catch(() => {
+          if (!cancelled) setStep(2);
+        });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [orgLoaded, user, integrations, org]);
 
   // If on Connect GitHub step but GitHub is already connected, go to next step
   useEffect(() => {
@@ -164,6 +228,17 @@ export function OnboardingPage() {
   }, [step, integrations, user]);
 
   if (authLoading || !user) return null;
+
+  const billingReturnPending =
+    searchParams.get('billing') === 'success' && !!searchParams.get('session_id');
+
+  if (user.onboarding && billingReturnPending) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-muted-foreground gap-3 p-8">
+        <p className="text-sm">{tb('confirmingPurchase')}</p>
+      </div>
+    );
+  }
 
   if (user.onboarding) {
     navigate('/dashboard', { replace: true });
@@ -194,7 +269,29 @@ export function OnboardingPage() {
       } else {
         const newOrg = await createOrganization({ name: orgName.trim() });
         await updateUser(user.id, { organization_id: newOrg.id });
-        await refreshUser();
+      }
+      await refreshUser();
+      const u = await getMe();
+      if (u.organization_id) {
+        const o = await getOrganization(u.organization_id);
+        setOrg(o);
+        if (o.owner_id === u.id && !isStaffBypassSubscription(u.email)) {
+          const b = await getBillingSubscription();
+          if (b.subscription_status !== 'trialing' && b.subscription_status !== 'active') {
+            const slug = readSelectedPlanSlug();
+            if (slug) {
+              try {
+                const { url } = await createBillingCheckoutSession(slug);
+                window.location.href = url;
+                return;
+              } catch (e) {
+                setError(e instanceof Error ? e.message : tb('checkoutFailed'));
+                return;
+              }
+            }
+            /* No plan selected: continue onboarding; app stays read-only until owner subscribes. */
+          }
+        }
       }
       setStep(1);
     } catch (e) {

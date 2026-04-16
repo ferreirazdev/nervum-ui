@@ -8,6 +8,8 @@ import { LoginPage, RegisterPage, AuthProvider, useAuth } from '@/features/auth'
 import { EnvironmentsPage } from '@/features/environments';
 import { OnboardingPage, MemberOnboardingPage } from '@/features/onboarding';
 import { DashboardPage } from '@/features/dashboard';
+import { BillingPage } from '@/features/billing';
+import { InternalAdminPage, RequireInternalAdmin } from '@/features/internal-admin';
 import { OrganizationPage } from '@/features/organization';
 import { TeamsPage } from '@/features/teams';
 import { UsersPage } from '@/features/users';
@@ -85,6 +87,26 @@ const router = createBrowserRouter([
             <RequireOnboardingCompleted>
               <DashboardPage />
             </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'billing',
+        element: (
+          <ProtectedRoute>
+            <RequireOnboardingCompleted>
+              <BillingPage />
+            </RequireOnboardingCompleted>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'internal',
+        element: (
+          <ProtectedRoute>
+            <RequireInternalAdmin>
+              <InternalAdminPage />
+            </RequireInternalAdmin>
           </ProtectedRoute>
         ),
       },
