@@ -8,9 +8,9 @@
     "getStarted": "Comece agora"
   },
   "hero": {
-    "titleLine1": "Chega de favoritos.",
-    "titleLine2": "Tudo em um s\u00f3 lugar.",
-    "subtitle": "Pare de alternar entre GCP Console, GitHub e Sentry. O Nervum centraliza sua infraestrutura em nuvem, reposit\u00f3rios e erros de aplica\u00e7\u00e3o em uma \u00fanica vis\u00e3o de gerenciamento \u2014 sempre sincronizado, sempre acion\u00e1vel.",
+    "titleLine1": "O sistema nervoso da sua aplica\u00e7\u00e3o.",
+    "titleLine2": "Todos os sinais. Um pulso.",
+    "subtitle": "GCP, GitHub e Sentry contam cada um sua parte da hist\u00f3ria. O Nervum liga infraestrutura em nuvem, reposit\u00f3rios e erros num mapa vivo \u2014 sempre atual \u2014 para sua equipe reagir com contexto completo, n\u00e3o no escuro.",
     "requestAccess": "Solicitar Acesso Antecipado",
     "bookDemo": "Agendar uma Demo",
     "toolsReplaced": "FERRAMENTAS SUBSTITU\u00cdDAS:",
@@ -25,65 +25,65 @@
   },
   "stats": {
     "time": "3 min",
-    "timeLabel": "Tempo para conectar sua stack",
-    "tabs": "1 aba",
-    "tabsLabel": "Para GCP, GitHub e Sentry",
+    "timeLabel": "Para ligar sua stack ao Nervum",
+    "tabs": "Um pulso",
+    "tabsLabel": "Em GCP, GitHub e Sentry",
     "agents": "0 agentes",
     "agentsLabel": "Sem instrumenta\u00e7\u00e3o necess\u00e1ria"
   },
   "problem": {
-    "title": "O Cemit\u00e9rio de Favoritos",
-    "subtitle": "Sua equipe tem 12 abas abertas no navegador antes de conseguir responder uma \u00fanica pergunta. O contexto vive em ferramentas diferentes, e cada incidente come\u00e7a com uma ca\u00e7a ao tesouro.",
+    "title": "Sinais presos em silos",
+    "subtitle": "Quando infraestrutura, c\u00f3digo e erros vivem em ferramentas separadas, ningu\u00e9m sente o sistema inteiro. Incidentes come\u00e7am meio cegos \u2014 e s\u00f3 aceleram quando algu\u00e9m remenda a hist\u00f3ria na m\u00e3o.",
     "withoutNervum": "Sem o Nervum",
     "withNervum": "Com o Nervum",
     "before": [
       {
         "title": "Console do GCP",
-        "text": "Cada VM, banco de dados e servi\u00e7o Cloud Run fica em uma parte diferente do console. Boa sorte tendo a vis\u00e3o completa."
+        "text": "VMs, bancos e Cloud Run ficam em cantos diferentes do console. A nuvem manda muitos sinais \u2014 nenhum deles encontra seu repo ou seus erros sozinho."
       },
       {
-        "title": "GitHub, separado",
-        "text": "Abra uma segunda aba para ver o que acabou de ser implantado. Cruze commits manualmente. Repita para cada incidente."
+        "title": "GitHub, isolado",
+        "text": "Commits e deploys moram aqui, mas amarrar ao que est\u00e1 rodando de fato \u2014 e a quem pertence \u2014 ainda \u00e9 trabalho de detetive a cada incidente."
       },
       {
-        "title": "Sentry, em outra aba",
-        "text": "Um erro est\u00e1 disparando. Mas qual servi\u00e7o? Qual equipe? Qual commit causou? Hora de abrir mais abas."
+        "title": "Sentry, desconectado",
+        "text": "Um erro dispara. Qual servi\u00e7o? Qual equipe? Qual commit? O alerta \u00e9 alto; a liga\u00e7\u00e3o com o resto do sistema, n\u00e3o."
       }
     ],
     "after": [
       {
-        "title": "Sua Nuvem, aqui",
-        "text": "Navegue por VMs Compute, bancos Cloud SQL e servi\u00e7os Cloud Run \u2014 inicie, pare e inspecione sem sair do Nervum."
+        "title": "Sua nuvem, ligada",
+        "text": "Navegue por VMs Compute, Cloud SQL e Cloud Run \u2014 inicie, pare e inspecione \u2014 sem perder o fio do que mais mudou na mesma vis\u00e3o."
       },
       {
-        "title": "Seus repos, aqui",
-        "text": "Commits, pull requests e merges de todos os reposit\u00f3rios GitHub conectados em um feed de atividades unificado."
+        "title": "Seus repos, ligados",
+        "text": "Commits, pull requests e merges de todos os reposit\u00f3rios GitHub fluem para o mesmo feed de atividade que os sinais de runtime."
       },
       {
-        "title": "Seus erros, aqui",
-        "text": "Alertas do Sentry vinculados ao servi\u00e7o e \u00e0 equipe respons\u00e1vel. Contexto completo, zero troca de abas."
+        "title": "Seus erros, ligados",
+        "text": "Alertas do Sentry vinculados a servi\u00e7os e equipes donas. Do sinal ao respons\u00e1vel num s\u00f3 contexto \u2014 sem ca\u00e7a ao tesouro entre consoles."
       }
     ]
   },
   "howItWorks": {
     "title": "Integre em minutos",
-    "subtitle": "Conecte suas ferramentas uma vez. Gerencie tudo de um s\u00f3 lugar, para sempre.",
+    "subtitle": "Conecte uma vez. O Nervum mant\u00e9m mapa e feeds vivos para todos compartilharem a mesma leitura do sistema.",
     "connect": {
       "step": "01. Conectar",
       "text": "Vincule Google Cloud, GitHub e Sentry via OAuth em menos de 3 minutos. Sem agentes, sem YAML, sem SDK para instalar."
     },
     "map": {
       "step": "02. Mapear",
-      "text": "O Nervum constr\u00f3i um mapa interativo dos seus ambientes \u2014 servi\u00e7os, bancos de dados, repos e responsabilidades de equipe \u2014 e mant\u00e9m atualizado."
+      "text": "O Nervum constr\u00f3i um mapa vivo dos seus ambientes \u2014 servi\u00e7os, bancos, repos e responsabilidade de equipe \u2014 e mant\u00e9m esses sinais ligados conforme tudo muda."
     },
     "manage": {
-      "step": "03. Gerenciar",
-      "text": "Inicie VMs, revise backups SQL, rastreie um erro do Sentry at\u00e9 seu commit e verifique o status do deploy. Tudo em uma aba."
+      "step": "03. Sentir e responder",
+      "text": "Inicie VMs, revise backups SQL, rastreie um erro do Sentry at\u00e9 o commit e leia a sa\u00fade do deploy. Reaja a partir de uma vis\u00e3o coerente da stack."
     }
   },
   "features": {
-    "title": "Tudo em um s\u00f3 lugar",
-    "subtitle": "Substitua as abas. O Nervum exibe os dados que voc\u00ea precisa de cada ferramenta, em uma \u00fanica vis\u00e3o de gerenciamento.",
+    "title": "Um sistema nervoso para o seu software",
+    "subtitle": "Re\u00fana o que importa de GCP, GitHub e Sentry \u2014 mapeado, com dono e pronto para agir.",
     "environmentMaps": {
       "category": "Arquitetura",
       "title": "Mapas de Ambiente",
@@ -92,7 +92,7 @@
     "activityFeed": {
       "category": "Observabilidade",
       "title": "Feed de Atividades Unificado",
-      "description": "Commits do GitHub, PRs, deploys do Cloud Build e erros do Sentry. Um feed, em vez de quatro abas abertas."
+      "description": "Commits do GitHub, PRs, deploys do Cloud Build e erros do Sentry num s\u00f3 fluxo \u2014 sinais de c\u00f3digo e de runtime na mesma linha do tempo."
     },
     "gcpManagement": {
       "category": "Cloud Ops",
@@ -102,7 +102,7 @@
     "teamOwnership": {
       "category": "Responsabilidade",
       "title": "Responsabilidade de Equipe",
-      "description": "Atribua equipes a servi\u00e7os e ambientes. Todo engenheiro sabe quem \u00e9 dono de qu\u00ea \u2014 sem precisar ficar perguntando no Slack."
+      "description": "Atribua equipes a servi\u00e7os e ambientes. Todo engenheiro sabe quem \u00e9 dono de qu\u00ea \u2014 sem arqueologia no Slack."
     },
     "accessControl": {
       "category": "Seguran\u00e7a",
@@ -116,35 +116,35 @@
     }
   },
   "automation": {
-    "title": "Substitua suas abas di\u00e1rias",
-    "subtitle": "Estes s\u00e3o os fluxos de trabalho que sua equipe executa todos os dias \u2014 agora sem trocar de ferramenta.",
+    "title": "Respostas coordenadas",
+    "subtitle": "Do sinal \u00e0 a\u00e7\u00e3o \u2014 os fluxos que seu time j\u00e1 percorre, com contexto que n\u00e3o se perde entre ferramentas.",
     "incidentTriage": {
       "title": "Triagem de Incidentes",
-      "description": "Um erro do Sentry dispara. Veja o servi\u00e7o, a equipe respons\u00e1vel e o \u00faltimo commit do GitHub \u2014 sem abrir uma \u00fanica aba extra."
+      "description": "Um erro do Sentry dispara. Mostre servi\u00e7o, equipe dona e \u00faltimo commit do GitHub no mesmo fio de contexto \u2014 sem ficar saltando de ferramenta para remendar a hist\u00f3ria."
     },
     "deployVerification": {
       "title": "Verifica\u00e7\u00e3o de Deploy",
-      "description": "Um job do Cloud Build termina. Confirme qual commit do GitHub o acionou, qual ambiente foi afetado e se o servi\u00e7o est\u00e1 saud\u00e1vel."
+      "description": "Um job do Cloud Build termina. Confirme qual commit do GitHub disparou, qual ambiente recebeu e se o servi\u00e7o est\u00e1 saud\u00e1vel \u2014 sem perder o rastro."
     },
     "preReleaseAudit": {
       "title": "Auditoria Pr\u00e9-Release",
-      "description": "Antes de uma release: verifique backups do Cloud SQL, confira o estado de todas as VMs e confirme o status do ambiente \u2014 em uma tela."
+      "description": "Antes de uma release: verifique backups do Cloud SQL, estado das VMs e status do ambiente \u2014 uma leitura de prontid\u00e3o do sistema."
     }
   },
   "who": {
-    "title": "Para equipes cansadas de gerenciar abas",
-    "subtitle": "Seja voc\u00ea um CTO solo ou uma equipe de 50 engenheiros, o Nervum oferece uma \u00fanica vis\u00e3o de gerenciamento de toda a sua stack de software.",
+    "title": "Para quem precisa sentir a stack",
+    "subtitle": "CTO solo ou organiza\u00e7\u00e3o com cinquenta engenheiros: uma vis\u00e3o viva de nuvem, c\u00f3digo, erros e responsabilidades.",
     "ctos": {
       "title": "CTOs e Tech Leads",
-      "text": "Pare de perguntar 'qual equipe \u00e9 dona disso?' O Nervum mapeia toda sua infraestrutura com responsabilidade de equipe integrada, para que voc\u00ea tenha respostas \u2014 n\u00e3o mais abas."
+      "text": "Pare de tratar incidentes como um monte de alertas desconectados. O Nervum mapeia infraestrutura com dono expl\u00edcito \u2014 voc\u00ea l\u00ea estado do sistema, n\u00e3o ru\u00eddos soltos."
     },
     "founders": {
-      "title": "Fundadores em Est\u00e1gio Inicial",
-      "text": "Voc\u00ea ainda n\u00e3o tem uma equipe de plataforma. O Nervum age como uma. GCP, GitHub e Sentry centralizados em uma \u00fanica vis\u00e3o, desde o primeiro dia."
+      "title": "Fundadores em est\u00e1gio inicial",
+      "text": "Ainda n\u00e3o tem equipe de plataforma? O Nervum vira o sistema nervoso compartilhado de GCP, GitHub e Sentry desde o primeiro dia \u2014 o mesmo reflexo para todo mundo."
     },
     "teams": {
-      "title": "Times de Engenharia",
-      "text": "Integre novos desenvolvedores em horas. Cada servi\u00e7o, repo e ambiente est\u00e1 mapeado e pesquis\u00e1vel \u2014 sem conhecimento tribal."
+      "title": "Times de engenharia",
+      "text": "Integre novos desenvolvedores em horas. Servi\u00e7os, repos e ambientes permanecem mapeados e pesquis\u00e1veis \u2014 contexto compartilhado vence conhecimento tribal."
     }
   },
   "security": {
@@ -157,22 +157,22 @@
   },
   "socialProof": {
     "title": "Confiado por times de engenharia",
-    "subtitle": "Junte-se a empresas inovadoras usando o Nervum para escalar com confian\u00e7a.",
+    "subtitle": "Junte-se a times que leem a stack com clareza \u2014 e ganham velocidade com confian\u00e7a.",
     "testimonials": [
       {
-        "quote": "O Nervum nos deu a visibilidade que precisav\u00e1mos desesperadamente. Agora podemos ver exatamente o que est\u00e1 conectado a qu\u00ea e quem \u00e9 o respons\u00e1vel.",
+        "quote": "Enfim um lugar onde os sinais se encontram: vemos o que liga a qu\u00ea, quem \u00e9 dono e o que mudou por \u00faltimo. Parece que o sistema consegue se explicar.",
         "author": "Sarah Chen",
         "role": "CTO na TechFlow",
         "initials": "SC"
       },
       {
-        "quote": "Os fluxos de automa\u00e7\u00e3o s\u00e3o revolucion\u00e1rios. Incidentes agora criam tickets com contexto completo automaticamente. Nosso MTTR caiu 60%.",
+        "quote": "Incidentes chegam com contexto de sinal completo antes da gente ficar trocando de ferramenta. O MTTR caiu uns 60% porque a hist\u00f3ria j\u00e1 vem amarrada.",
         "author": "Michael Rodriguez",
         "role": "Tech Lead na DataScale",
         "initials": "MR"
       },
       {
-        "quote": "N\u00e3o temos uma equipe de plataforma ainda, mas o Nervum faz parecer que temos. \u00c9 como ter um SRE em uma caixa.",
+        "quote": "Precis\u00e1vamos de um sistema nervoso antes de contratar plataforma. O Nervum d\u00e1 esse reflexo compartilhado \u2014 todo mundo reage a partir do mesmo mapa.",
         "author": "Emma Thompson",
         "role": "Fundadora na BuildFast",
         "initials": "ET"
@@ -180,9 +180,9 @@
     ]
   },
   "cta": {
-    "titleLine1": "Feche as abas.",
-    "titleLine2": "Abra o Nervum.",
-    "subtitle": "Conecte seu Google Cloud, GitHub e Sentry em minutos. Uma \u00fanica vis\u00e3o de gerenciamento para toda a sua stack de software \u2014 sem favoritos.",
+    "titleLine1": "Sinta o sistema inteiro.",
+    "titleLine2": "Comece com o Nervum.",
+    "subtitle": "Conecte Google Cloud, GitHub e Sentry em minutos. Um mapa e um feed vivos \u2014 o sistema nervoso que faltava para a sua aplica\u00e7\u00e3o.",
     "requestAccess": "Solicitar Acesso Antecipado",
     "bookDemo": "Agendar uma Demo"
   },
@@ -190,6 +190,6 @@
     "privacy": "Privacidade",
     "terms": "Termos",
     "security": "Seguran\u00e7a",
-    "copyright": "\u00a9 2026 Nervum. Plataforma de Intelig\u00eancia para Engenharia."
+    "copyright": "\u00a9 2026 Nervum. O sistema nervoso do seu software."
   }
 }

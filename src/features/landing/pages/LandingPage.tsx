@@ -111,7 +111,7 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="font-display-landing text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
+              className="font-display-landing text-5xl md:text-7xl lg:text-6xl font-black tracking-tight mb-6"
               style={{ lineHeight: 1.05 }}
             >
               {t('hero.titleLine1')} <br />
