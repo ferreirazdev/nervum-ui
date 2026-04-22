@@ -40,6 +40,7 @@ describe('RegisterPage', () => {
         display_amount_cents: 100,
       },
     ]);
+    vi.mocked(api.listBillingPlans).mockClear();
   });
 
   it('shows the form when plan query matches an active billing plan', async () => {

@@ -1,9 +1,12 @@
-/** Staff accounts skip subscription paywall (aligned with internal admin default email). */
-const STAFF_BYPASS_EMAIL = 'ferreirazdev@gmail.com';
+/** Staff and designated accounts skip the subscription paywall (onboarding checkout + dashboard modal). */
+const SUBSCRIPTION_BYPASS_EMAILS = new Set<string>([
+  'ferreirazdev@gmail.com',
+  'pessoal.flavioferreira@gmail.com',
+]);
 
 export function isStaffBypassSubscription(email: string | undefined): boolean {
   if (!email) return false;
-  return email.trim().toLowerCase() === STAFF_BYPASS_EMAIL;
+  return SUBSCRIPTION_BYPASS_EMAILS.has(email.trim().toLowerCase());
 }
 
 /** Org has full product access when Stripe subscription is trialing or active. */

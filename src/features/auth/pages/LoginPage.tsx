@@ -65,7 +65,7 @@ export function LoginPage() {
       const user = await login(values.email, values.password);
       navigate(user.onboarding ? '/dashboard' : '/onboarding');
     } catch (e) {
-      setError('Invalid email or password.');
+      setError('Cadastros estão bloqueados.');
     }
   }
 
